@@ -1,7 +1,16 @@
+CC = cl65
+TARGET_ARCH = -t cx16
+
+# Cribbed from
+# %: %.o
+#  commands to execute (built-in):
+#        $(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
+
+%.prg : %.o
+	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
+
 all: charmap.prg boxtext.prg
 
-charmap.prg: charmap.c
-	cl65 -o charmap.prg -t cx16 charmap.c
+charmap.prg: charmap.o
 
-boxtext.prg: boxtext.c
-	cl65 -o boxtext.prg -t cx16 boxtext.c
+boxtext.prg: boxtext.o
