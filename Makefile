@@ -10,7 +10,3 @@ TARGET_ARCH = -t cx16
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 all: charmap.prg boxtext.prg
-
-charmap.prg: charmap.o
-
-boxtext.prg: boxtext.o
