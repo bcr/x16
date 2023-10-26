@@ -19,7 +19,7 @@ static void output_char_map()
     uint8_t current_char;
     uint8_t is_first_time = 1;
 
-    puts("  \xdd\x30 1 2 3 4 5 6 7 8 9 a b c d e f");
+    puts("  \xdd" "0 1 2 3 4 5 6 7 8 9 a b c d e f");
     puts("\xc0\xc0\xdb\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0\xc0");
 
     for (current_char = start_char;current_char <= end_char;++current_char)
