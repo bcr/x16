@@ -1,4 +1,3 @@
-CC = cl65
-TARGET_ARCH = -t cx16
+include x16cl65.mak
 
 all: charmap boxtext
