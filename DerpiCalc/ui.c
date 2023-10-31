@@ -65,16 +65,16 @@ static void ui_draw_cell_value(uint8_t cell_column, uint8_t cell_row)
         s_put_symbol(cell_value[cell_idx], active ? INVERSE_COLOR : NORMAL_COLOR);    
 }
 
-static void ui_draw_cells(uint8_t start_cell_column, uint8_t start_cell_row)
+static void ui_draw_cells()
 {
     uint8_t j, current_cell_row, current_cell_column, end_cell_column;
 
-    end_cell_column = start_cell_column + NUMBER_CELL_COLUMNS - 1;
+    end_cell_column = ul_cell_column + NUMBER_CELL_COLUMNS - 1;
 
-    for (current_cell_row = start_cell_row, j = 4;j < HEIGHT_CHARS;++j, ++current_cell_row)
+    for (current_cell_row = ul_cell_row, j = 4;j < HEIGHT_CHARS;++j, ++current_cell_row)
     {
         s_set_position(3, j);
-        for (current_cell_column = start_cell_column;current_cell_column <= end_cell_column; ++current_cell_column)
+        for (current_cell_column = ul_cell_column;current_cell_column <= end_cell_column; ++current_cell_column)
         {
             ui_draw_cell_value(current_cell_column, current_cell_row);
         }
@@ -131,7 +131,7 @@ void ui_init(cell_ctx ctx)
 
     ui_draw_row_headers();
     ui_draw_column_headers();
-    ui_draw_cells(0, 0);
+    ui_draw_cells();
 }
 
 static void adjust_active_cell(uint8_t new_active_cell_column, uint8_t new_active_cell_row)
@@ -146,6 +146,33 @@ static void adjust_active_cell(uint8_t new_active_cell_column, uint8_t new_activ
 
     draw_single_cell(old_active_cell_column, old_active_cell_row);
     draw_single_cell(active_cell_column, active_cell_row);
+}
+
+static void ensure_cell_in_view(uint8_t cell_column, uint8_t cell_row)
+{
+    uint8_t new_ul_cell_column = ul_cell_column;
+    uint8_t new_ul_cell_row = ul_cell_row;
+
+    if (cell_column < ul_cell_column)
+        new_ul_cell_column = cell_column;
+
+    if (cell_row < ul_cell_row)
+        new_ul_cell_row = cell_row;
+
+    if (cell_row >= (ul_cell_row + (HEIGHT_CHARS - 4)))
+        new_ul_cell_row = (cell_row - (HEIGHT_CHARS - 4) + 1);
+
+    if (cell_column >= (ul_cell_column + (NUMBER_CELL_COLUMNS)))
+        new_ul_cell_column = cell_column - NUMBER_CELL_COLUMNS + 1;
+
+    if ((new_ul_cell_column != ul_cell_column) || (new_ul_cell_row != ul_cell_row))
+    {
+        ul_cell_column = new_ul_cell_column;
+        ul_cell_row = new_ul_cell_row;
+        ui_draw_row_headers();
+        ui_draw_column_headers();
+        ui_draw_cells();
+    }
 }
 
 void ui_kb(uint8_t key)
@@ -173,6 +200,7 @@ void ui_kb(uint8_t key)
 
     if ((new_active_cell_column != active_cell_column) || (new_active_cell_row != active_cell_row))
     {
+        ensure_cell_in_view(new_active_cell_column, new_active_cell_row);
         adjust_active_cell(new_active_cell_column, new_active_cell_row);
     }
 }
