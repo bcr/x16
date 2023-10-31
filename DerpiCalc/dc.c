@@ -1,7 +1,9 @@
+#include "cell.h"
 #include "ui.h"
 
 int main(void)
 {
-    ui_init();
+    cell_ctx ctx = c_init();
+    ui_init(ctx);
     return 0;
 }

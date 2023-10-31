@@ -5,11 +5,12 @@ include ../x16cl65.mak
 
 all: dc.prg
 
-dc.o: dc.c ui.h
+cell.o: cell.c cell.h
+dc.o: dc.c cell.h ui.h
 screen.o: screen.c screen.h
-ui.o: ui.c ui.h screen.h
+ui.o: ui.c ui.h screen.h cell.h
 
-dc.prg: dc.o screen.o ui.o
+dc.prg: dc.o cell.o screen.o ui.o
 
 clean:
 	rm -f *.o

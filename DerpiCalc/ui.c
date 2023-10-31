@@ -3,6 +3,7 @@
 #include <cx16.h>
 
 #include "screen.h"
+#include "cell.h"
 
 #include "ui.h"
 
@@ -16,21 +17,6 @@
 
 #define COLUMN_WIDTH 9
 #define NUMBER_CELL_COLUMNS ((WIDTH_CHARS - 3) / COLUMN_WIDTH)
-
-static void draw_all_chars(void)
-{
-    uint8_t i, j, current_char;
-
-    current_char = 0;
-    for (j = 4; j < 20;++j)
-    {
-        s_set_position(3, j);
-        for (i = 0;i < 16;++i)
-        {
-            s_put_symbol(current_char++, NORMAL_COLOR);
-        }
-    }
-}
 
 static void ui_draw_row_headers(uint8_t start_cell_row)
 {
@@ -62,7 +48,26 @@ static void ui_draw_column_headers(uint8_t start_cell_column)
     }
 }
 
-void ui_init(void)
+static void ui_draw_cells(cell_ctx ctx, uint8_t start_cell_column, uint8_t start_cell_row)
+{
+    uint8_t j, current_cell_row, current_cell_column, end_cell_column, cell_idx;
+    const uint8_t* cell_value;
+
+    end_cell_column = start_cell_column + NUMBER_CELL_COLUMNS - 1;
+
+    for (current_cell_row = start_cell_row, j = 4;j < HEIGHT_CHARS;++j, ++current_cell_row)
+    {
+        s_set_position(3, j);
+        for (current_cell_column = start_cell_column;current_cell_column <= end_cell_column; ++current_cell_column)
+        {
+            cell_value = c_get_cell_value(ctx, current_cell_column, current_cell_row);
+            for (cell_idx = 0;cell_idx < COLUMN_WIDTH;++cell_idx)
+                s_put_symbol(cell_value[cell_idx], NORMAL_COLOR);
+        }
+    }
+}
+
+void ui_init(cell_ctx ctx)
 {
     uint8_t i;
     uint8_t j;
@@ -97,7 +102,7 @@ void ui_init(void)
         }
     }
 
-    draw_all_chars();
     ui_draw_row_headers(0);
     ui_draw_column_headers(0);
+    ui_draw_cells(ctx, 0, 0);
 }
