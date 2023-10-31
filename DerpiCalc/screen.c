@@ -10,11 +10,13 @@
 #define STRIDE 128
 #define MAPBASE_TILE_COUNT STRIDE*64
 
-static const unsigned long mapBaseAddr = 0x1B000;
+static const unsigned long layer1MapBaseAddr = 0x13000;
+static const unsigned long layer0MapBaseAddr = 0x13000 + (MAPBASE_TILE_COUNT * 2);
+// static const unsigned long layer0MapBaseAddr = 0x1F000;
 
-static void vera_set_start_line(uint8_t col, uint8_t row)
+static void vera_set_start_line(uint8_t col, uint8_t row, uint8_t layer)
 {
-    unsigned long address = mapBaseAddr + (row * STRIDE * 2) + (col * 2);
+    unsigned long address = ((layer == 0) ? layer0MapBaseAddr : layer1MapBaseAddr) + (row * STRIDE * 2) + (col * 2);
 
     VERA.address = address;
     VERA.address_hi = address>>16;
@@ -23,24 +25,31 @@ static void vera_set_start_line(uint8_t col, uint8_t row)
 
 void s_init(void)
 {
+    VERA.display.video |= 0b00110000;   // Turn on layer 0 and layer 1
+
+    VERA.layer1.mapbase = layer1MapBaseAddr >> 9;
+    VERA.layer0.mapbase = layer0MapBaseAddr >> 9;
+
+    VERA.layer0.tilebase = VERA.layer1.tilebase;
+    VERA.layer0.config = VERA.layer1.config;
 }
 
-void s_set_position(uint8_t col, uint8_t row)
+void s_set_position(uint8_t col, uint8_t row, uint8_t layer)
 {
-    vera_set_start_line(col, row);
+    vera_set_start_line(col, row, layer);
 }
 
-void s_put_symbol(uint8_t symbol, uint8_t color)
+void s_put_symbol(uint8_t symbol, uint8_t color, uint8_t layer)
 {
     VERA.data0 = symbol;
     VERA.data0 = color;
 }
 
-void s_clear(uint8_t color)
+void s_clear(uint8_t color, uint8_t layer)
 {
     uint_least16_t i;
 
-    s_set_position(0, 0);
+    s_set_position(0, 0, layer);
 
     for (i=0; i<MAPBASE_TILE_COUNT; i++)
     {

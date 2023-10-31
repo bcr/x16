@@ -7,8 +7,8 @@
 #define MAKECOLOR(FG, BG) ((FG) | (BG) << 4)
 
 void s_init(void);
-void s_clear(uint8_t color);
-void s_set_position(uint8_t col, uint8_t row);
-void s_put_symbol(uint8_t symbol, uint8_t color);
+void s_clear(uint8_t color, uint8_t layer);
+void s_set_position(uint8_t col, uint8_t row, uint8_t layer);
+void s_put_symbol(uint8_t symbol, uint8_t color, uint8_t layer);
 
 #endif /* SCREEN_H */

@@ -10,6 +10,9 @@
 #define NORMAL_COLOR MAKECOLOR(COLOR_GREEN, COLOR_BLACK)
 #define INVERSE_COLOR MAKECOLOR(COLOR_BLACK, COLOR_GREEN)
 
+#define LAYER_UI 1
+#define LAYER_CELLS 0
+
 #define SYMBOL_SPACE 0x20
 #define SYMBOL_LATIN_CAPITAL_LETTER_A 0x41
 #define SYMBOL_LATIN_SMALL_LETTER_A 0x01
@@ -30,10 +33,10 @@ static void ui_draw_row_headers()
 
     for (j = 4; j<HEIGHT_CHARS;++j,++current_cell_row)
     {
-        s_set_position(0, j);
-        s_put_symbol(current_cell_row < 100 ? SYMBOL_SPACE : current_cell_row / 100 + SYMBOL_DIGIT_ZERO, INVERSE_COLOR);
-        s_put_symbol(current_cell_row < 10 ? SYMBOL_SPACE : current_cell_row / 10 % 10 + SYMBOL_DIGIT_ZERO, INVERSE_COLOR);
-        s_put_symbol(current_cell_row % 10 + SYMBOL_DIGIT_ZERO, INVERSE_COLOR);
+        s_set_position(0, j, LAYER_UI);
+        s_put_symbol(current_cell_row < 100 ? SYMBOL_SPACE : current_cell_row / 100 + SYMBOL_DIGIT_ZERO, INVERSE_COLOR, LAYER_UI);
+        s_put_symbol(current_cell_row < 10 ? SYMBOL_SPACE : current_cell_row / 10 % 10 + SYMBOL_DIGIT_ZERO, INVERSE_COLOR, LAYER_UI);
+        s_put_symbol(current_cell_row % 10 + SYMBOL_DIGIT_ZERO, INVERSE_COLOR, LAYER_UI);
     }
 }
 
@@ -46,9 +49,9 @@ static void ui_draw_column_headers()
 
     for (i = 0;i < NUMBER_CELL_COLUMNS;++i)
     {
-        s_set_position(3 + i * COLUMN_WIDTH + COLUMN_WIDTH / 2, 3);
-        s_put_symbol(current_cell_column < 26 ? SYMBOL_SPACE : (current_cell_column / 26 - 1) + SYMBOL_LATIN_CAPITAL_LETTER_A, INVERSE_COLOR);
-        s_put_symbol(current_cell_column % 26 + SYMBOL_LATIN_CAPITAL_LETTER_A, INVERSE_COLOR);
+        s_set_position(3 + i * COLUMN_WIDTH + COLUMN_WIDTH / 2, 3, LAYER_UI);
+        s_put_symbol(current_cell_column < 26 ? SYMBOL_SPACE : (current_cell_column / 26 - 1) + SYMBOL_LATIN_CAPITAL_LETTER_A, INVERSE_COLOR, LAYER_UI);
+        s_put_symbol(current_cell_column % 26 + SYMBOL_LATIN_CAPITAL_LETTER_A, INVERSE_COLOR, LAYER_UI);
         column += COLUMN_WIDTH;
         ++current_cell_column;
     }
@@ -62,7 +65,7 @@ static void ui_draw_cell_value(uint8_t cell_column, uint8_t cell_row)
     cell_value = c_get_cell_value(g_cell_ctx, cell_column, cell_row);
     active = (active_cell_column == cell_column) && (active_cell_row == cell_row);
     for (cell_idx = 0;cell_idx < COLUMN_WIDTH;++cell_idx)
-        s_put_symbol(cell_value[cell_idx], active ? INVERSE_COLOR : NORMAL_COLOR);    
+        s_put_symbol(cell_value[cell_idx], active ? INVERSE_COLOR : NORMAL_COLOR, LAYER_CELLS);    
 }
 
 static void ui_draw_cells()
@@ -73,7 +76,7 @@ static void ui_draw_cells()
 
     for (current_cell_row = ul_cell_row, j = 4;j < HEIGHT_CHARS;++j, ++current_cell_row)
     {
-        s_set_position(3, j);
+        s_set_position(3, j, LAYER_CELLS);
         for (current_cell_column = ul_cell_column;current_cell_column <= end_cell_column; ++current_cell_column)
         {
             ui_draw_cell_value(current_cell_column, current_cell_row);
@@ -83,7 +86,7 @@ static void ui_draw_cells()
 
 static void draw_single_cell(uint8_t cell_column, uint8_t cell_row)
 {
-    s_set_position(3 + ((cell_column - ul_cell_column) * COLUMN_WIDTH), cell_row - ul_cell_row + 4);
+    s_set_position(3 + ((cell_column - ul_cell_column) * COLUMN_WIDTH), cell_row - ul_cell_row + 4, LAYER_CELLS);
     ui_draw_cell_value(cell_column, cell_row);
 }
 
@@ -95,37 +98,38 @@ void ui_init(cell_ctx ctx)
     g_cell_ctx = ctx;
 
     s_init();
-    s_clear(NORMAL_COLOR);
+    s_clear(NORMAL_COLOR, LAYER_UI);
+    s_clear(NORMAL_COLOR, LAYER_CELLS);
 
     active_cell_column = 0;
     active_cell_row = 0;
     ul_cell_column = 0;
     ul_cell_row = 0;
 
-    s_set_position(0, 0);
+    s_set_position(0, 0, LAYER_UI);
     for (i = 0;i < WIDTH_CHARS;++i)
     {
-        s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR);
+        s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR, LAYER_UI);
     }
 
-    s_set_position(0, 1);
+    s_set_position(0, 1, LAYER_UI);
     for (i = 0;i < (WIDTH_CHARS - 2);++i)
     {
-        s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR);
+        s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR, LAYER_UI);
     }
 
-    s_set_position(0, 3);
+    s_set_position(0, 3, LAYER_UI);
     for (i = 0;i < ((NUMBER_CELL_COLUMNS * COLUMN_WIDTH) + 3);++i)
     {
-        s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR);
+        s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR, LAYER_UI);
     }
 
     for (j = 4; j<HEIGHT_CHARS;++j)
     {
-        s_set_position(0, j);
+        s_set_position(0, j, LAYER_UI);
         for (i = 0;i < 3;++i)
         {
-            s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR);
+            s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR, LAYER_UI);
         }
     }
 
