@@ -7,7 +7,11 @@
                 "/opt/homebrew/Cellar/cc65/2.19/share/cc65/include"
             ],
             "compilerPath": "/opt/homebrew/bin/cl65",
-            "configurationProvider": "ms-vscode.makefile-tools"
+            "configurationProvider": "ms-vscode.makefile-tools",
+            "defines": [
+                "__CBM__",
+                "__CX16__"
+            ]
         }
     ],
     "version": 4
