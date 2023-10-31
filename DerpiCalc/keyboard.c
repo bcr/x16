@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "keyboard.h"
 
 static uint8_t keycode;
