@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#include <cx16.h>
+#include <cbm.h>
 
 #include "screen.h"
 
