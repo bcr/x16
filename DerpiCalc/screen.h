@@ -10,5 +10,6 @@ void s_init(void);
 void s_clear(uint8_t color, uint8_t layer);
 void s_set_position(uint8_t col, uint8_t row, uint8_t layer);
 void s_put_symbol(uint8_t symbol, uint8_t color);
+void s_scroll(int8_t cols, int8_t rows, uint8_t layer);
 
 #endif /* SCREEN_H */

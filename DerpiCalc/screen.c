@@ -57,3 +57,17 @@ void s_clear(uint8_t color, uint8_t layer)
         VERA.data0 = color;
     }
 }
+
+void s_scroll(int8_t cols, int8_t rows, uint8_t layer)
+{
+    if (layer == 0)
+    {
+        VERA.layer0.hscroll = cols * 8;
+        VERA.layer0.vscroll = rows * 8;
+    }
+    else
+    {
+        VERA.layer1.hscroll = cols * 8;
+        VERA.layer1.vscroll = rows * 8;
+    }
+}
