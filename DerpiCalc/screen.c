@@ -39,7 +39,7 @@ void s_set_position(uint8_t col, uint8_t row, uint8_t layer)
     vera_set_start_line(col, row, layer);
 }
 
-void s_put_symbol(uint8_t symbol, uint8_t color, uint8_t layer)
+void s_put_symbol(uint8_t symbol, uint8_t color)
 {
     VERA.data0 = symbol;
     VERA.data0 = color;
