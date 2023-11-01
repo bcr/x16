@@ -81,6 +81,25 @@ static void ui_draw_prompt_line(const char* prompt)
     ui_draw_asciiz(prompt, INVERSE_COLOR);
 }
 
+static void ui_draw_cell_location(uint8_t col, uint8_t row)
+{
+    if (col >= 26)
+        s_put_symbol((col / 26 - 1) + SYMBOL_LATIN_CAPITAL_LETTER_A, INVERSE_COLOR);
+    s_put_symbol(col % 26 + SYMBOL_LATIN_CAPITAL_LETTER_A, INVERSE_COLOR);
+
+    row++;
+    if (row >= 100)
+        s_put_symbol((row / 100) + SYMBOL_DIGIT_ZERO, INVERSE_COLOR);
+    if (row >= 10)
+        s_put_symbol((row / 10 % 10) + SYMBOL_DIGIT_ZERO, INVERSE_COLOR);
+    s_put_symbol((row % 10) + SYMBOL_DIGIT_ZERO, INVERSE_COLOR);
+    row--;
+
+    s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR);
+    s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR);
+    s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR);
+}
+
 static void ui_draw_row_headers()
 {
     uint8_t j;
@@ -192,6 +211,11 @@ static void adjust_active_cell(uint8_t new_active_cell_column, uint8_t new_activ
     y = 4 + active_cell_row;
     s_set_position(x, y, LAYER_UI);
     ui_draw_cell_value(ul_cell_column + active_cell_column, ul_cell_row + active_cell_row,x, y, INVERSE_COLOR, LAYER_UI);
+
+    x = 0;
+    y = 0;
+    s_set_position(x, y, LAYER_UI);
+    ui_draw_cell_location(ul_cell_column + active_cell_column, ul_cell_row + active_cell_row);
 }
 
 void ui_init(cell_ctx ctx)
