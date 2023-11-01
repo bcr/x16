@@ -247,6 +247,7 @@ void ui_kb(uint8_t key)
                 ul_cell_row + NUMBER_CELL_ROWS,
                 ul_cell_row + NUMBER_CELL_ROWS
             );
+            ui_draw_row_headers();
             break;
         case CH_CURS_UP:
             if (ul_cell_row > 0)
@@ -268,6 +269,7 @@ void ui_kb(uint8_t key)
                         ul_cell_row - 1
                     );
                 }
+                ui_draw_row_headers();
             }
             break;
         case CH_CURS_RIGHT:
@@ -285,6 +287,7 @@ void ui_kb(uint8_t key)
                 (ul_cell_row > 0) ? ul_cell_row - 1 : ul_cell_row,
                 ul_cell_row + NUMBER_CELL_ROWS
             );
+            ui_draw_column_headers();
             break;
         case CH_CURS_LEFT:
             if (ul_cell_column > 0)
@@ -306,6 +309,7 @@ void ui_kb(uint8_t key)
                         ul_cell_row + NUMBER_CELL_ROWS
                     );
                 }
+                ui_draw_column_headers();
             }
             break;
     }
