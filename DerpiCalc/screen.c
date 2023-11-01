@@ -28,13 +28,18 @@ static void vera_set_start_line(uint8_t col, uint8_t row, uint8_t layer)
 
 void s_init(void)
 {
-    VERA.display.video |= 0b00110000;   // Turn on layer 0 and layer 1
-
     VERA.layer1.mapbase = layer1MapBaseAddr >> 9;
     VERA.layer0.mapbase = layer0MapBaseAddr >> 9;
 
     VERA.layer0.tilebase = VERA.layer1.tilebase;
     VERA.layer0.config = VERA.layer1.config;
+
+    // I added the clear calls and switch the layers after that so it doesn't
+    // look janky at startup
+    s_clear(0, 0);
+    s_clear(0, 1);
+
+    VERA.display.video |= 0b00110000;   // Turn on layer 0 and layer 1
 }
 
 void s_set_position(uint8_t col, uint8_t row, uint8_t layer)
