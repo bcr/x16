@@ -438,6 +438,7 @@ void ui_kb(uint8_t key)
         case CH_CURS_RIGHT:
         case CH_CURS_LEFT:
             ui_arrows(key);
+            break;
         default:
             break;
     }
