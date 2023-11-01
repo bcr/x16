@@ -113,7 +113,7 @@ static void ui_draw_column_headers()
     }
 }
 
-static void ui_draw_cell_value(uint8_t cell_column, uint8_t cell_row, uint8_t x, uint8_t y)
+static void ui_draw_cell_value(uint8_t cell_column, uint8_t cell_row, uint8_t x, uint8_t y, uint8_t color, uint8_t layer)
 {
     uint8_t cell_idx;
     const uint8_t* cell_value;
@@ -122,13 +122,13 @@ static void ui_draw_cell_value(uint8_t cell_column, uint8_t cell_row, uint8_t x,
     cell_value = c_get_cell_value(g_cell_ctx, cell_column, cell_row);
 
     for (cell_idx = 0;cell_idx < chars_to_draw;++cell_idx)
-        s_put_symbol(cell_value[cell_idx], NORMAL_COLOR);
+        s_put_symbol(cell_value[cell_idx], color);
 
     if (chars_to_draw < COLUMN_WIDTH)
     {
-        s_set_position(0, y, LAYER_CELLS);
+        s_set_position(0, y, layer);
         for (;cell_idx < COLUMN_WIDTH;++cell_idx)
-            s_put_symbol(cell_value[cell_idx], NORMAL_COLOR);
+            s_put_symbol(cell_value[cell_idx], color);
     }
 }
 
@@ -148,7 +148,7 @@ static void ui_draw_cells(uint8_t x, uint8_t y, uint8_t start_col, uint8_t end_c
         s_set_position(current_x, current_y, LAYER_CELLS);
         for (current_cell_column = start_col;current_cell_column <= end_col; ++current_cell_column)
         {
-            ui_draw_cell_value(current_cell_column, current_cell_row, current_x, current_y);
+            ui_draw_cell_value(current_cell_column, current_cell_row, current_x, current_y, NORMAL_COLOR, LAYER_CELLS);
             current_x += COLUMN_WIDTH;
             if (current_x >= CANVAS_WIDTH_CHARS)
             {
@@ -162,6 +162,36 @@ static void ui_draw_cells(uint8_t x, uint8_t y, uint8_t start_col, uint8_t end_c
 static void ui_update_scroll(void)
 {
     s_scroll(scroll_column, scroll_row, LAYER_CELLS);
+}
+
+static void adjust_active_cell(uint8_t new_active_cell_column, uint8_t new_active_cell_row)
+{
+    uint8_t old_active_cell_column, old_active_cell_row;
+    uint8_t i, x, y;
+
+    old_active_cell_column = active_cell_column;
+    old_active_cell_row = active_cell_row;
+
+    active_cell_column = new_active_cell_column;
+    active_cell_row = new_active_cell_row;
+
+    if ((old_active_cell_column != active_cell_column) || (old_active_cell_row != active_cell_row))
+    {
+        x = 3 + old_active_cell_column * COLUMN_WIDTH;
+        y = 4 + old_active_cell_row;
+
+        // Put transparent spaces in the old cell location
+        s_set_position(x, y, LAYER_UI);
+        for (i = 0;i < COLUMN_WIDTH;++i)
+        {
+            s_put_symbol(SYMBOL_SPACE, TRANSPARENT_COLOR);
+        }
+    }
+
+    x = 3 + active_cell_column * COLUMN_WIDTH;
+    y = 4 + active_cell_row;
+    s_set_position(x, y, LAYER_UI);
+    ui_draw_cell_value(ul_cell_column + active_cell_column, ul_cell_row + active_cell_row,x, y, INVERSE_COLOR, LAYER_UI);
 }
 
 void ui_init(cell_ctx ctx)
@@ -228,20 +258,7 @@ void ui_init(cell_ctx ctx)
     ui_draw_prompt_line("DerpiCalc (C) 2023 bcr");
     ui_update_scroll();
     ui_draw_cells(x_offset, y_offset, 0, NUMBER_CELL_COLUMNS, 0, NUMBER_CELL_ROWS);
-}
-
-static void adjust_active_cell(uint8_t new_active_cell_column, uint8_t new_active_cell_row)
-{
-    uint8_t old_active_cell_column, old_active_cell_row;
-
-    old_active_cell_column = active_cell_column;
-    old_active_cell_row = active_cell_row;
-
-    active_cell_column = new_active_cell_column;
-    active_cell_row = new_active_cell_row;
-
-    // draw_single_cell(old_active_cell_column, old_active_cell_row);
-    // draw_single_cell(active_cell_column, active_cell_row);
+    adjust_active_cell(active_cell_column, active_cell_row);
 }
 
 static void ensure_cell_in_view(uint8_t cell_column, uint8_t cell_row)
@@ -273,7 +290,7 @@ static void ensure_cell_in_view(uint8_t cell_column, uint8_t cell_row)
 
 #define COMPUTE_BB() { ul_x = CLAMP_SUB(x_offset, COLUMN_WIDTH, CANVAS_WIDTH_CHARS); ul_y = CLAMP_SUB(y_offset, 1, CANVAS_HEIGHT_CHARS); br_x = CLAMP_ADD(x_offset, (COLUMN_WIDTH * NUMBER_CELL_COLUMNS), CANVAS_WIDTH_CHARS); br_y = CLAMP_ADD(y_offset, NUMBER_CELL_ROWS, CANVAS_HEIGHT_CHARS);}
 
-void ui_kb(uint8_t key)
+static void ui_scroll(uint8_t key)
 {
     uint8_t ul_x, ul_y, br_x, br_y;
     switch (key)
@@ -367,4 +384,61 @@ void ui_kb(uint8_t key)
     //     ensure_cell_in_view(new_active_cell_column, new_active_cell_row);
         // adjust_active_cell(new_active_cell_column, new_active_cell_row);
     // }
+}
+
+static void ui_arrows(uint8_t key)
+{
+    uint8_t do_scroll = 0;
+    uint8_t new_active_cell_column = active_cell_column;
+    uint8_t new_active_cell_row = active_cell_row;
+
+    switch (key)
+    {
+        case CH_CURS_DOWN:
+            do_scroll = (active_cell_row == (NUMBER_CELL_ROWS - 1));
+            if (!do_scroll)
+            {
+                new_active_cell_row++;
+            }
+            break;
+        case CH_CURS_UP:
+            do_scroll = (active_cell_row == 0);
+            if (!do_scroll)
+            {
+                new_active_cell_row--;
+            }
+            break;
+        case CH_CURS_RIGHT:
+            do_scroll = (new_active_cell_column == (NUMBER_CELL_COLUMNS - 1));
+            if (!do_scroll)
+            {
+                new_active_cell_column++;
+            }
+            break;
+        case CH_CURS_LEFT:
+            do_scroll = (new_active_cell_column == 0);
+            if (!do_scroll)
+            {
+                new_active_cell_column--;
+            }
+            break;
+    }
+
+    if (do_scroll)
+        ui_scroll(key);
+    adjust_active_cell(new_active_cell_column, new_active_cell_row);
+}
+
+void ui_kb(uint8_t key)
+{
+    switch (key)
+    {
+        case CH_CURS_DOWN:
+        case CH_CURS_UP:
+        case CH_CURS_RIGHT:
+        case CH_CURS_LEFT:
+            ui_arrows(key);
+        default:
+            break;
+    }
 }
