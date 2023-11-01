@@ -146,7 +146,7 @@ void ui_init(cell_ctx ctx)
     }
 
     s_set_position(0, 1, LAYER_UI);
-    for (i = 0;i < (WIDTH_CHARS - 2);++i)
+    for (i = 0;i < WIDTH_CHARS;++i)
     {
         s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR);
     }
