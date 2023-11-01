@@ -36,6 +36,51 @@ static uint8_t ul_cell_column, ul_cell_row;
 static int8_t scroll_column, scroll_row;
 static uint8_t x_offset, y_offset;
 
+static void ui_draw_asciiz(const char* asciiz, uint8_t color)
+{
+    uint8_t symbol;
+
+    while (*asciiz)
+    {
+        symbol = *asciiz;
+        if ((symbol >= 'a') && (symbol <= 'z'))
+        {
+            symbol = symbol - 'a' + SYMBOL_LATIN_SMALL_LETTER_A;
+        }
+        else if ((symbol >= 'A') && (symbol <= 'Z'))
+        {
+            symbol = symbol - 'A' + SYMBOL_LATIN_CAPITAL_LETTER_A;
+        }
+        else if ((symbol >= ' ') && (symbol <= '?'))
+        {
+        }
+        else if (symbol == '[')
+        {
+            symbol = 27;
+        }
+        else if (symbol == ']')
+        {
+            symbol = 29;
+        }
+        else if (symbol == '@')
+        {
+            symbol = 0;
+        }
+        else
+        {
+            symbol = '?';
+        }
+        s_put_symbol(symbol, color);
+        ++asciiz;
+    }
+}
+
+static void ui_draw_prompt_line(const char* prompt)
+{
+    s_set_position(0, 1, LAYER_UI);
+    ui_draw_asciiz(prompt, INVERSE_COLOR);
+}
+
 static void ui_draw_row_headers()
 {
     uint8_t j;
@@ -180,6 +225,7 @@ void ui_init(cell_ctx ctx)
 
     ui_draw_row_headers();
     ui_draw_column_headers();
+    ui_draw_prompt_line("DerpiCalc (C) 2023 bcr");
     ui_update_scroll();
     ui_draw_cells(x_offset, y_offset, 0, NUMBER_CELL_COLUMNS, 0, NUMBER_CELL_ROWS);
 }
