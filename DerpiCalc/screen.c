@@ -10,7 +10,10 @@
 #define STRIDE 128
 #define MAPBASE_TILE_COUNT STRIDE*64
 
-static const unsigned long layer1MapBaseAddr = 0x13000;
+// I left layer1MapBaseAddr at 0x1b000 so that printf() will continue to work.
+// The tidy thing to do would be to put the two buffers next to each other.
+// static const unsigned long layer1MapBaseAddr = 0x13000;
+static const unsigned long layer1MapBaseAddr = 0x1b000;
 static const unsigned long layer0MapBaseAddr = 0x13000 + (MAPBASE_TILE_COUNT * 2);
 // static const unsigned long layer0MapBaseAddr = 0x1F000;
 
