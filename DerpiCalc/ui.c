@@ -285,33 +285,6 @@ void ui_init(cell_ctx ctx)
     adjust_active_cell(active_cell_column, active_cell_row);
 }
 
-static void ensure_cell_in_view(uint8_t cell_column, uint8_t cell_row)
-{
-    uint8_t new_ul_cell_column = ul_cell_column;
-    uint8_t new_ul_cell_row = ul_cell_row;
-
-    if (cell_column < ul_cell_column)
-        new_ul_cell_column = cell_column;
-
-    if (cell_row < ul_cell_row)
-        new_ul_cell_row = cell_row;
-
-    if (cell_row >= (ul_cell_row + NUMBER_CELL_ROWS))
-        new_ul_cell_row = (cell_row - NUMBER_CELL_ROWS + 1);
-
-    if (cell_column >= (ul_cell_column + (NUMBER_CELL_COLUMNS)))
-        new_ul_cell_column = cell_column - NUMBER_CELL_COLUMNS + 1;
-
-    if ((new_ul_cell_column != ul_cell_column) || (new_ul_cell_row != ul_cell_row))
-    {
-        ul_cell_column = new_ul_cell_column;
-        ul_cell_row = new_ul_cell_row;
-        ui_draw_row_headers();
-        ui_draw_column_headers();
-        // ui_draw_cells();
-    }
-}
-
 #define COMPUTE_BB() { ul_x = CLAMP_SUB(x_offset, COLUMN_WIDTH, CANVAS_WIDTH_CHARS); ul_y = CLAMP_SUB(y_offset, 1, CANVAS_HEIGHT_CHARS); br_x = CLAMP_ADD(x_offset, (COLUMN_WIDTH * NUMBER_CELL_COLUMNS), CANVAS_WIDTH_CHARS); br_y = CLAMP_ADD(y_offset, NUMBER_CELL_ROWS, CANVAS_HEIGHT_CHARS);}
 
 static void ui_scroll(uint8_t key)
@@ -402,12 +375,6 @@ static void ui_scroll(uint8_t key)
     }
 
     ui_update_scroll();
-
-    // if ((new_active_cell_column != active_cell_column) || (new_active_cell_row != active_cell_row))
-    // {
-    //     ensure_cell_in_view(new_active_cell_column, new_active_cell_row);
-        // adjust_active_cell(new_active_cell_column, new_active_cell_row);
-    // }
 }
 
 static void ui_arrows(uint8_t key)
