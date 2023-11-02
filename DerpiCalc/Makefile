@@ -13,6 +13,9 @@ ui.o: ui.c ui.h screen.h cell.h
 
 dc.prg: dc.o cell.o keyboard.o screen.o ui.o
 
+docs:
+	doxygen
+
 clean:
 	rm -f *.o
 	rm -f dc.prg
