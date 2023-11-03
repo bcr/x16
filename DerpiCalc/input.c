@@ -34,7 +34,7 @@ static void in_handle_repeating_label_entry(void)
     final_string = in_handle_edit_line("Label: Repeating", 0, &rc, &final_string_length);
 }
 
-static void in_handle_command()
+static void in_handle_command(void)
 {
     uint8_t key;
 
