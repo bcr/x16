@@ -49,6 +49,18 @@ static void in_handle_blank(void)
     // Anything else: Beep and don't blank it
 }
 
+static void in_handle_version(void)
+{
+    uint8_t key;
+    ui_draw_prompt_line("DerpiCalc (C) 2023 bcr");    
+    key = kb_getch();
+    ui_draw_prompt_line("");
+
+    // !!! TODO
+    // DOS VisiCalc:
+    // Keep message until a key pressed, do normal key activity
+}
+
 static void in_handle_command(void)
 {
     uint8_t key;
@@ -64,7 +76,7 @@ static void in_handle_command(void)
             break;
         case 'v':
         case 'V':
-            ui_draw_prompt_line("DerpiCalc (C) 2023 bcr");
+            in_handle_version();
             break;
         case '-':
             in_handle_repeating_label_entry();
