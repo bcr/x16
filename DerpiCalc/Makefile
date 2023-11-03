@@ -10,9 +10,10 @@ dc.o: dc.c cell.h input.h
 input.o: input.c input.h keyboard.h ui.h
 keyboard.o: keyboard.c keyboard.h
 screen.o: screen.c screen.h
-ui.o: ui.c ui.h screen.h cell.h
+ui.o: ui.c ui.h ui_internal.h screen.h cell.h
+ui_edit.o: ui_edit.c ui.h ui_internal.h
 
-dc.prg: dc.o cell.o input.o keyboard.o screen.o ui.o
+dc.prg: dc.o cell.o input.o keyboard.o screen.o ui.o ui_edit.o
 
 docs:
 	doxygen
