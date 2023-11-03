@@ -36,9 +36,10 @@ static uint8_t ul_cell_column, ul_cell_row;
 static int8_t scroll_column, scroll_row;
 static uint8_t x_offset, y_offset;
 
-static void ui_draw_asciiz(const char* asciiz, uint8_t color)
+static uint8_t ui_draw_asciiz(const char* asciiz, uint8_t color)
 {
     uint8_t symbol;
+    uint8_t symbols_drawn = 0;
 
     while (*asciiz)
     {
@@ -71,14 +72,27 @@ static void ui_draw_asciiz(const char* asciiz, uint8_t color)
             symbol = '?';
         }
         s_put_symbol(symbol, color);
+        ++symbols_drawn;
         ++asciiz;
     }
+
+    return symbols_drawn;
 }
 
 static void ui_draw_prompt_line(const char* prompt)
 {
+    static uint8_t last_prompt_line_length = 0;
+    uint8_t this_prompt_line_length;
+    uint8_t space_chars_to_draw;
+
     s_set_position(0, 1, LAYER_UI);
-    ui_draw_asciiz(prompt, INVERSE_COLOR);
+    this_prompt_line_length = ui_draw_asciiz(prompt, INVERSE_COLOR);
+    space_chars_to_draw = (last_prompt_line_length > this_prompt_line_length) ? (last_prompt_line_length - this_prompt_line_length) : 0;
+
+    while (space_chars_to_draw--)
+        s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR);
+    
+    last_prompt_line_length = this_prompt_line_length;
 }
 
 static void ui_draw_cell_location(uint8_t col, uint8_t row)
