@@ -34,6 +34,21 @@ static void in_handle_repeating_label_entry(void)
     final_string = in_handle_edit_line("Label: Repeating", 0, &rc, &final_string_length);
 }
 
+static void in_handle_blank(void)
+{
+    uint8_t key;
+
+    ui_draw_prompt_line("Blank");
+    key = kb_getch();
+    ui_draw_prompt_line("");
+
+    // !!! TODO
+    // DOS VisiCalc:
+    // CH_ENTER: Blank it
+    // Arrow keys: Blank it and move active cell
+    // Anything else: Beep and don't blank it
+}
+
 static void in_handle_command(void)
 {
     uint8_t key;
@@ -43,6 +58,10 @@ static void in_handle_command(void)
 
     switch (key)
     {
+        case 'b':
+        case 'B':
+            in_handle_blank();
+            break;
         case 'v':
         case 'V':
             ui_draw_prompt_line("DerpiCalc (C) 2023 bcr");
