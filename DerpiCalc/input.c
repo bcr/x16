@@ -61,6 +61,16 @@ static void in_handle_version(void)
     // Keep message until a key pressed, do normal key activity
 }
 
+static void in_handle_format(void)
+{
+    uint8_t key;
+    ui_draw_prompt_line("Format: D G I L R $ *");
+    key = kb_getch();
+    ui_draw_prompt_line("");
+
+    // !!! TODO
+}
+
 static void in_handle_command(void)
 {
     uint8_t key;
@@ -73,6 +83,10 @@ static void in_handle_command(void)
         case 'b':
         case 'B':
             in_handle_blank();
+            break;
+        case 'f':
+        case 'F':
+            in_handle_format();
             break;
         case 'v':
         case 'V':
