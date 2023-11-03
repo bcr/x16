@@ -1,18 +1,13 @@
 #include "cell.h"
+#include "input.h"
 #include "keyboard.h"
 #include "ui.h"
 
 int main(void)
 {
-    uint8_t key;
-
     cell_ctx ctx = c_init();
     kb_init();
     ui_init(ctx);
-    while (1)
-    {
-        key = kb_getch();
-        ui_kb(key);
-    }
+    in_loop();
     return 0;
 }

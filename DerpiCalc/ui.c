@@ -79,7 +79,7 @@ static uint8_t ui_draw_asciiz(const char* asciiz, uint8_t color)
     return symbols_drawn;
 }
 
-static void ui_draw_prompt_line(const char* prompt)
+void ui_draw_prompt_line(const char* prompt)
 {
     static uint8_t last_prompt_line_length = 0;
     uint8_t this_prompt_line_length;
@@ -391,7 +391,7 @@ static void ui_scroll(uint8_t key)
     ui_update_scroll();
 }
 
-static void ui_arrows(uint8_t key)
+void ui_arrows(uint8_t key)
 {
     uint8_t do_scroll = 0;
     uint8_t new_active_cell_column = active_cell_column;
@@ -432,19 +432,4 @@ static void ui_arrows(uint8_t key)
     if (do_scroll)
         ui_scroll(key);
     adjust_active_cell(new_active_cell_column, new_active_cell_row);
-}
-
-void ui_kb(uint8_t key)
-{
-    switch (key)
-    {
-        case CH_CURS_DOWN:
-        case CH_CURS_UP:
-        case CH_CURS_RIGHT:
-        case CH_CURS_LEFT:
-            ui_arrows(key);
-            break;
-        default:
-            break;
-    }
 }
