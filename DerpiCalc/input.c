@@ -4,26 +4,6 @@
 #include "keyboard.h"
 #include "ui.h"
 
-static void in_handle_command()
-{
-    uint8_t key;
-
-    ui_draw_prompt_line("Command: BCDGIMORV-");
-    key = kb_getch();
-
-    switch (key)
-    {
-        case 'v':
-        case 'V':
-            ui_draw_prompt_line("DerpiCalc (C) 2023 bcr");
-            break;
-        default:
-            // Unknown command letter
-            ui_draw_prompt_line("");
-            break;
-    }
-}
-
 static const uint8_t* in_handle_edit_line(const char* prompt, uint8_t key, uint8_t* rc, uint8_t* len)
 {
     const uint8_t* final_string;
@@ -43,6 +23,38 @@ static const uint8_t* in_handle_edit_line(const char* prompt, uint8_t key, uint8
     ui_draw_prompt_line("");
 
     return final_string;
+}
+
+static void in_handle_repeating_label_entry(void)
+{
+    const uint8_t* final_string;
+    uint8_t final_string_length;
+    uint8_t rc;
+
+    final_string = in_handle_edit_line("Label: Repeating", 0, &rc, &final_string_length);
+}
+
+static void in_handle_command()
+{
+    uint8_t key;
+
+    ui_draw_prompt_line("Command: BCDGIMORV-");
+    key = kb_getch();
+
+    switch (key)
+    {
+        case 'v':
+        case 'V':
+            ui_draw_prompt_line("DerpiCalc (C) 2023 bcr");
+            break;
+        case '-':
+            in_handle_repeating_label_entry();
+            break;
+        default:
+            // Unknown command letter
+            ui_draw_prompt_line("");
+            break;
+    }
 }
 
 static void in_handle_label_entry(uint8_t key)
