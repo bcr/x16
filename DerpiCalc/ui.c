@@ -24,7 +24,6 @@
 #define CANVAS_WIDTH_CHARS 128
 #define CANVAS_HEIGHT_CHARS 64
 
-static cell_ctx g_cell_ctx;
 static uint8_t active_cell_column, active_cell_row;
 static uint8_t ul_cell_column, ul_cell_row;
 static int8_t scroll_column, scroll_row;
@@ -146,7 +145,7 @@ static void ui_draw_cell_value(uint8_t cell_column, uint8_t cell_row, uint8_t x,
     const uint8_t* cell_value;
     uint8_t chars_to_draw = (CANVAS_WIDTH_CHARS - x) < COLUMN_WIDTH ? (CANVAS_WIDTH_CHARS - x) : COLUMN_WIDTH;
 
-    cell_value = c_get_cell_value(g_cell_ctx, cell_column, cell_row);
+    cell_value = c_get_cell_value(cell_column, cell_row);
 
     for (cell_idx = 0;cell_idx < chars_to_draw;++cell_idx)
         s_put_symbol(cell_value[cell_idx], color);
@@ -226,12 +225,10 @@ static void adjust_active_cell(uint8_t new_active_cell_column, uint8_t new_activ
     ui_draw_cell_location(ul_cell_column + active_cell_column, ul_cell_row + active_cell_row);
 }
 
-void ui_init(cell_ctx ctx)
+void ui_init(void)
 {
     uint8_t i;
     uint8_t j;
-
-    g_cell_ctx = ctx;
 
     s_init();
     s_clear(TRANSPARENT_COLOR, LAYER_UI);

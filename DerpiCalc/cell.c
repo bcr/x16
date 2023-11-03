@@ -1,4 +1,6 @@
 #include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "cell.h"
 
@@ -7,25 +9,108 @@
 #define SYMBOL_LATIN_SMALL_LETTER_A 0x01
 #define SYMBOL_DIGIT_ZERO 0x30
 
-cell_ctx c_init(void)
+#define MAX_CELL_COLUMN 63
+#define MAX_CELL_ROW 254
+
+#define COLUMNS_PER_BLOCK 8
+#define ROWS_PER_BLOCK 64
+
+#define NUMBER_HORIZONTAL_BLOCKS ((MAX_CELL_COLUMN + (COLUMNS_PER_BLOCK - 1)) / COLUMNS_PER_BLOCK)
+#define NUMBER_VERTICAL_BLOCKS ((MAX_CELL_ROW + (ROWS_PER_BLOCK - 1)) / ROWS_PER_BLOCK)
+
+struct cell_t
 {
-    return 1;
-}
+    uint8_t col;
+    uint8_t row;
+    uint8_t contents_len;
+    uint8_t* contents;
+    uint8_t value_len;
+    uint8_t* value;
+    struct cell_t* next;
+};
+
+static struct cell_t *cell_map [NUMBER_HORIZONTAL_BLOCKS][NUMBER_VERTICAL_BLOCKS];
 
 static uint8_t cell_value[] = "         ";
 
-const uint8_t* c_get_cell_value(cell_ctx ctx, uint8_t col, uint8_t row)
+void c_init(void)
 {
-    uint8_t index = 0;
-    uint8_t one_based_row = row + 1;
+    uint8_t x, y;
 
-    cell_value[index++] = (col < 26 ? SYMBOL_SPACE : (col / 26 - 1) + SYMBOL_LATIN_CAPITAL_LETTER_A);
-    cell_value[index++] = (col % 26 + SYMBOL_LATIN_CAPITAL_LETTER_A);
-    cell_value[index++] = (one_based_row < 100 ? SYMBOL_SPACE : one_based_row / 100 + SYMBOL_DIGIT_ZERO);
-    cell_value[index++] = (one_based_row < 10 ? SYMBOL_SPACE : one_based_row / 10 % 10 + SYMBOL_DIGIT_ZERO);
-    cell_value[index++] = (one_based_row % 10 + SYMBOL_DIGIT_ZERO);
-    cell_value[index++] = SYMBOL_SPACE;
-    cell_value[index++] = col;
-    cell_value[index++] = row;
-    return cell_value;
+    for (x = 0;x<NUMBER_HORIZONTAL_BLOCKS;x++)
+        for (y = 0;y<NUMBER_VERTICAL_BLOCKS;y++)
+            cell_map[x][y] = NULL;
+}
+
+static struct cell_t* find_cell(uint8_t col, uint8_t row, uint8_t allocate)
+{
+    struct cell_t** current = &(cell_map[col / COLUMNS_PER_BLOCK][row / ROWS_PER_BLOCK]);
+
+    while (*current)
+    {
+        if (((*current)->col == col) && ((*current)->row == row))
+            break;
+        current = &((*current)->next);
+    }
+
+    if (allocate)
+    {
+        struct cell_t* new_cell = calloc(1, sizeof(struct cell_t));
+        *current = new_cell;
+        new_cell->col = col;
+        new_cell->row = row;
+    }
+
+    return *current;
+}
+
+const uint8_t* c_get_cell_value(uint8_t col, uint8_t row)
+{
+    struct cell_t* cell;
+
+    cell = find_cell(col, row, 0);
+    return (cell) ? cell->value : cell_value;
+}
+
+static void cell_update_value(struct cell_t* cell)
+{
+    uint8_t i;
+    uint8_t bytes_to_copy;
+    uint8_t bytes_to_alloc = 9; // !!! TODO 9?!
+
+    if (cell->value)
+    {
+        free(cell->value);
+        cell->value = NULL;
+        cell->value_len = 0;
+    }
+
+    cell->value = malloc(bytes_to_alloc);
+    cell->value_len = bytes_to_alloc;
+
+    bytes_to_copy = (cell->value_len < cell->contents_len) ? cell->value_len : cell->contents_len;
+    memcpy(cell->value, cell->contents, bytes_to_copy);
+
+    if (bytes_to_copy < bytes_to_alloc)
+        for (i = bytes_to_copy;i < bytes_to_alloc;i++)
+            cell->value[i] = SYMBOL_SPACE;
+}
+
+void c_set_cell_label(uint8_t col, uint8_t row, const uint8_t* label, uint8_t len)
+{
+    struct cell_t* cell;
+
+    cell = find_cell(col, row, 1);
+    if (cell->contents != NULL)
+    {
+        free(cell->contents);
+        cell->contents = NULL;
+        cell->contents_len = 0;
+    }
+
+    cell->contents = malloc(len);
+    cell->contents_len = len;
+    memcpy(cell->contents, label, len);
+
+    cell_update_value(cell);
 }

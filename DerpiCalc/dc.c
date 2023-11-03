@@ -5,9 +5,9 @@
 
 int main(void)
 {
-    cell_ctx ctx = c_init();
+    c_init();
     kb_init();
-    ui_init(ctx);
+    ui_init();
     in_loop();
     return 0;
 }
