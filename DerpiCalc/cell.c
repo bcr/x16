@@ -21,6 +21,7 @@
 #define CELL_TYPE_LABEL 0
 #define CELL_TYPE_VALUE 1
 #define CELL_TYPE_REPEATING 2
+#define CELL_TYPE_BLANK 3
 
 struct cell_t
 {
@@ -146,4 +147,16 @@ void c_set_cell_repeating_label(uint8_t col, uint8_t row, const uint8_t* label, 
     cell->type = CELL_TYPE_REPEATING;
     cell_set_contents(cell, label, len);
     cell_update_value(cell);
+}
+
+void c_blank_cell(uint8_t col, uint8_t row)
+{
+    struct cell_t* cell;
+    cell = find_cell(col, row, 0);
+    if (cell != NULL)
+    {
+        cell->type = CELL_TYPE_BLANK;
+        cell_clear_contents(cell);
+        cell_update_value(cell);
+    }
 }

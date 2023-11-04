@@ -44,11 +44,18 @@ static void in_handle_repeating_label_entry(void)
 static void in_handle_blank(void)
 {
     uint8_t key;
+    uint16_t cellref;
 
     ui_draw_prompt_line("Blank");
     key = kb_getch();
     ui_draw_prompt_line("");
 
+    if (key == CH_ENTER)
+    {
+        cellref = ui_get_active_cell();
+        c_blank_cell(CELLREF_GET_COL(cellref), CELLREF_GET_ROW(cellref));
+        ui_refresh_active_cell();
+    }
     // !!! TODO
     // DOS VisiCalc:
     // CH_ENTER: Blank it
