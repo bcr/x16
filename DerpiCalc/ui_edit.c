@@ -15,8 +15,45 @@ void ui_edit_line_start(void)
     edit_buffer_position = 0;
 }
 
+static uint8_t symbol_from_key(uint8_t key)
+{
+    uint8_t symbol = key;
+
+    if ((symbol >= 'a') && (symbol <= 'z'))
+    {
+        symbol = symbol - 'a' + SYMBOL_LATIN_SMALL_LETTER_A;
+    }
+    else if ((symbol >= 'A') && (symbol <= 'Z'))
+    {
+        symbol = symbol - 'A' + SYMBOL_LATIN_CAPITAL_LETTER_A;
+    }
+    else if ((symbol >= ' ') && (symbol <= '?'))
+    {
+    }
+    else if (symbol == '[')
+    {
+        symbol = 27;
+    }
+    else if (symbol == ']')
+    {
+        symbol = 29;
+    }
+    else if (symbol == '@')
+    {
+        symbol = 0;
+    }
+    else
+    {
+        symbol = '?';
+    }
+
+    return symbol;
+}
+
 uint8_t ui_edit_line_key(uint8_t key)
 {
+    uint8_t symbol;
+
     switch (key)
     {
         case CH_ESC:
@@ -37,10 +74,11 @@ uint8_t ui_edit_line_key(uint8_t key)
     if (edit_buffer_position >= EDIT_BUFFER_LENGTH)
         return UI_EDIT_LINE_CONTINUE;
 
+    symbol = symbol_from_key(key);
     s_set_position(edit_buffer_position, 2, LAYER_UI);
-    s_put_symbol(key, NORMAL_COLOR);
+    s_put_symbol(symbol, NORMAL_COLOR);
     s_put_symbol(' ', INVERSE_COLOR);
-    edit_buffer[edit_buffer_position++] = key;
+    edit_buffer[edit_buffer_position++] = symbol;
     return UI_EDIT_LINE_CONTINUE;
 }
 

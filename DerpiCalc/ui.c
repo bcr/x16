@@ -12,11 +12,6 @@
 #define CLAMP_ADD(X, Y, MAX) ((((MAX) - (X)) <= (Y)) ? ((Y) - ((MAX) - (X))): ((X) + (Y)))
 #define CLAMP_SUB(X, Y, MAX) (((X) < (Y)) ? ((MAX) - ((Y) - (X))) : ((X) - (Y)))
 
-#define SYMBOL_SPACE 0x20
-#define SYMBOL_LATIN_CAPITAL_LETTER_A 0x41
-#define SYMBOL_LATIN_SMALL_LETTER_A 0x01
-#define SYMBOL_DIGIT_ZERO 0x30
-
 #define COLUMN_WIDTH 9
 #define NUMBER_CELL_COLUMNS ((WIDTH_CHARS - 3) / COLUMN_WIDTH)
 #define NUMBER_CELL_ROWS (HEIGHT_CHARS - 4)
