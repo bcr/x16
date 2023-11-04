@@ -30,8 +30,15 @@ static void in_handle_repeating_label_entry(void)
     const uint8_t* final_string;
     uint8_t final_string_length;
     uint8_t rc;
+    uint16_t cellref;
 
     final_string = in_handle_edit_line("Label: Repeating", 0, &rc, &final_string_length);
+    if ((rc == UI_EDIT_LINE_DONE) && (final_string_length > 0))
+    {
+        cellref = ui_get_active_cell();
+        c_set_cell_repeating_label(CELLREF_GET_COL(cellref), CELLREF_GET_ROW(cellref), final_string, final_string_length);
+        ui_refresh_active_cell();
+    }
 }
 
 static void in_handle_blank(void)

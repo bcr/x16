@@ -18,8 +18,13 @@
 #define NUMBER_HORIZONTAL_BLOCKS ((MAX_CELL_COLUMN + (COLUMNS_PER_BLOCK - 1)) / COLUMNS_PER_BLOCK)
 #define NUMBER_VERTICAL_BLOCKS ((MAX_CELL_ROW + (ROWS_PER_BLOCK - 1)) / ROWS_PER_BLOCK)
 
+#define CELL_TYPE_LABEL 0
+#define CELL_TYPE_VALUE 1
+#define CELL_TYPE_REPEATING 2
+
 struct cell_t
 {
+    uint8_t type;
     uint8_t col;
     uint8_t row;
     uint8_t contents_len;
@@ -88,12 +93,38 @@ static void cell_update_value(struct cell_t* cell)
     cell->value = malloc(bytes_to_alloc);
     cell->value_len = bytes_to_alloc;
 
-    bytes_to_copy = (cell->value_len < cell->contents_len) ? cell->value_len : cell->contents_len;
-    memcpy(cell->value, cell->contents, bytes_to_copy);
+    if (cell->type == CELL_TYPE_REPEATING)
+    {
+        for (i = 0;i < bytes_to_copy;++i)
+            cell->value[i] = cell->contents[i % cell->contents_len];
+    }
+    else
+    {
+        bytes_to_copy = (cell->value_len < cell->contents_len) ? cell->value_len : cell->contents_len;
+        memcpy(cell->value, cell->contents, bytes_to_copy);
 
-    if (bytes_to_copy < bytes_to_alloc)
-        for (i = bytes_to_copy;i < bytes_to_alloc;i++)
-            cell->value[i] = SYMBOL_SPACE;
+        if (bytes_to_copy < bytes_to_alloc)
+            for (i = bytes_to_copy;i < bytes_to_alloc;i++)
+                cell->value[i] = SYMBOL_SPACE;
+    }
+}
+
+static void cell_clear_contents(struct cell_t* cell)
+{
+    if (cell->contents != NULL)
+    {
+        free(cell->contents);
+        cell->contents = NULL;
+        cell->contents_len = 0;
+    }
+}
+
+static void cell_set_contents(struct cell_t* cell, const uint8_t* contents, uint8_t len)
+{
+    cell_clear_contents(cell);
+    cell->contents = malloc(len);
+    cell->contents_len = len;
+    memcpy(cell->contents, contents, len);
 }
 
 void c_set_cell_label(uint8_t col, uint8_t row, const uint8_t* label, uint8_t len)
@@ -101,16 +132,17 @@ void c_set_cell_label(uint8_t col, uint8_t row, const uint8_t* label, uint8_t le
     struct cell_t* cell;
 
     cell = find_cell(col, row, 1);
-    if (cell->contents != NULL)
-    {
-        free(cell->contents);
-        cell->contents = NULL;
-        cell->contents_len = 0;
-    }
+    cell->type = CELL_TYPE_LABEL;
+    cell_set_contents(cell, label, len);
+    cell_update_value(cell);
+}
 
-    cell->contents = malloc(len);
-    cell->contents_len = len;
-    memcpy(cell->contents, label, len);
+void c_set_cell_repeating_label(uint8_t col, uint8_t row, const uint8_t* label, uint8_t len)
+{
+    struct cell_t* cell;
 
+    cell = find_cell(col, row, 1);
+    cell->type = CELL_TYPE_REPEATING;
+    cell_set_contents(cell, label, len);
     cell_update_value(cell);
 }
