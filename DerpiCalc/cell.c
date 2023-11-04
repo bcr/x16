@@ -42,7 +42,7 @@ void c_init(void)
             cell_map[x][y] = NULL;
 }
 
-static struct cell_t* find_cell(uint8_t col, uint8_t row, uint8_t allocate)
+static struct cell_t* find_cell(uint8_t col, uint8_t row, uint8_t allocate_if_not_found)
 {
     struct cell_t** current = &(cell_map[col / COLUMNS_PER_BLOCK][row / ROWS_PER_BLOCK]);
 
@@ -53,7 +53,7 @@ static struct cell_t* find_cell(uint8_t col, uint8_t row, uint8_t allocate)
         current = &((*current)->next);
     }
 
-    if (allocate)
+    if ((*current == NULL) && (allocate_if_not_found))
     {
         struct cell_t* new_cell = calloc(1, sizeof(struct cell_t));
         *current = new_cell;
