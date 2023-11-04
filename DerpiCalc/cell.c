@@ -95,6 +95,7 @@ static void cell_update_value(struct cell_t* cell)
 
     if (cell->type == CELL_TYPE_REPEATING)
     {
+        bytes_to_copy = cell->value_len;
         for (i = 0;i < bytes_to_copy;++i)
             cell->value[i] = cell->contents[i % cell->contents_len];
     }
