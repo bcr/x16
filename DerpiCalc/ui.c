@@ -430,8 +430,8 @@ void ui_refresh_active_cell(void)
     adjust_active_cell(active_cell_column, active_cell_row);
     // Need to update the cell layer also
     ui_draw_cells(
-        x_offset + (active_cell_column * COLUMN_WIDTH),
-        y_offset + active_cell_row,
+        CLAMP_ADD(x_offset, (active_cell_column * COLUMN_WIDTH), CANVAS_WIDTH_CHARS),
+        CLAMP_ADD(y_offset, active_cell_row, CANVAS_HEIGHT_CHARS),
         active_cell_column + ul_cell_column,
         active_cell_column + ul_cell_column,
         active_cell_row + ul_cell_row,
