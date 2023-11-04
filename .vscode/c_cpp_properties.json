@@ -5,6 +5,10 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "/opt/homebrew/Cellar/cc65/2.19/share/cc65/include"
+            ],
+            "defines": [
+                "__CBM__",
+                "__CX16__"
             ]
         }
     ],
