@@ -424,3 +424,22 @@ void ui_arrows(uint8_t key)
         ui_scroll(key);
     adjust_active_cell(new_active_cell_column, new_active_cell_row);
 }
+
+uint16_t ui_get_active_cell(void)
+{
+    return MAKE_CELLREF(ul_cell_column + active_cell_column, ul_cell_row + active_cell_row);
+}
+
+void ui_refresh_active_cell(void)
+{
+    adjust_active_cell(active_cell_column, active_cell_row);
+    // Need to update the cell layer also
+    ui_draw_cells(
+        x_offset + (active_cell_column * COLUMN_WIDTH),
+        y_offset + active_cell_row,
+        active_cell_column + ul_cell_column,
+        active_cell_column + ul_cell_column,
+        active_cell_row + ul_cell_row,
+        active_cell_row + ul_cell_row
+    );
+}
