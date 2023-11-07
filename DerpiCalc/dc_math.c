@@ -28,7 +28,7 @@ void m_int_to_number(int16_t i, struct number_t *result)
     get_fac(result);
 }
 
-const char* m_number_to_cstr(const struct number_t* n)
+volatile const char* m_number_to_cstr(const struct number_t* n)
 {
     temp_hi = ((uint16_t) n->number) >> 8;
     temp_lo = ((uint16_t) n->number) & 0x0ff;
@@ -37,7 +37,7 @@ const char* m_number_to_cstr(const struct number_t* n)
     asm("JSR $FE63"); // MOVFM -- puts Y/A into FAC
     asm("JSR $FE06"); // FOUT -- Puts ASCIIZ of FAC in $0100
 
-    return (const char*) fout_output;
+    return fout_output;
 }
 
 static void setup_fac_arg(const struct number_t* a, const struct number_t* b)

@@ -10,7 +10,7 @@ struct number_t
 };
 
 void m_int_to_number(int16_t i, struct number_t *result);
-const char* m_number_to_cstr(const struct number_t* n);
+volatile const char* m_number_to_cstr(const struct number_t* n);
 void m_divide(const struct number_t* a, const struct number_t* b, struct number_t* result);
 
 #endif /* DC_MATH_H */
