@@ -10,8 +10,8 @@ static uint8_t temp_lo;
 
 static void get_fac(struct number_t* result)
 {
-    temp_hi = ((uint16_t) result) >> 8;
-    temp_lo = ((uint16_t) result) & 0x0ff;
+    temp_hi = ((uint16_t) result->number) >> 8;
+    temp_lo = ((uint16_t) result->number) & 0x0ff;
     asm("ldx %v", temp_lo);
     asm("ldy %v", temp_hi);
     asm("JSR $FE66"); // MOVMF -- Stores FAC IN Y/X (result), 5 bytes long
@@ -30,8 +30,8 @@ void m_int_to_number(int16_t i, struct number_t *result)
 
 const char* m_number_to_cstr(const struct number_t* n)
 {
-    temp_hi = ((uint16_t) n) >> 8;
-    temp_lo = ((uint16_t) n) & 0x0ff;
+    temp_hi = ((uint16_t) n->number) >> 8;
+    temp_lo = ((uint16_t) n->number) & 0x0ff;
     asm("lda %v", temp_lo);
     asm("ldy %v", temp_hi);
     asm("JSR $FE63"); // MOVFM -- puts Y/A into FAC
@@ -42,14 +42,14 @@ const char* m_number_to_cstr(const struct number_t* n)
 
 static void setup_fac_arg(const struct number_t* a, const struct number_t* b)
 {
-    temp_hi = ((uint16_t) a) >> 8;
-    temp_lo = ((uint16_t) a) & 0x0ff;
+    temp_hi = ((uint16_t) a->number) >> 8;
+    temp_lo = ((uint16_t) a->number) & 0x0ff;
     asm("lda %v", temp_lo);
     asm("ldy %v", temp_hi);
     asm("JSR $FE5D"); // ROMUPK -- move memory to ARG
 
-    temp_hi = ((uint16_t) b) >> 8;
-    temp_lo = ((uint16_t) b) & 0x0ff;
+    temp_hi = ((uint16_t) b->number) >> 8;
+    temp_lo = ((uint16_t) b->number) & 0x0ff;
     asm("lda %v", temp_lo);
     asm("ldy %v", temp_hi);
     asm("JSR $FE63"); // MOVFM -- move memory to FAC
