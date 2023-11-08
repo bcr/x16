@@ -17,6 +17,33 @@ static void get_fac(struct number_t* result)
     asm("JSR $FE66"); // MOVMF -- Stores FAC IN Y/X (result), 5 bytes long
 }
 
+static void zero_fac(void)
+{
+    asm("JSR $FE72"); // ZEROFC -- FAC = 0
+}
+
+static void finlog(int8_t digit)
+{
+    temp_lo = digit;
+    asm("lda %v", temp_lo);
+    asm("JSR $FE90"); // FINLOG -- add accumulator to FAc
+}
+
+static void mul10(void)
+{
+    asm("JSR $FE7B"); // MUL10 -- FAC *= 10
+}
+
+static void div10(void)
+{
+    asm("JSR $FE7E"); // DIV10 -- FAC /= 10
+}
+
+static void negop(void)
+{
+    asm("JSR $FE33"); // NEGOP -- FAC = -FAC
+}
+
 void m_int_to_number(int16_t i, struct number_t *result)
 {
     temp_hi = i >> 8;
@@ -24,6 +51,45 @@ void m_int_to_number(int16_t i, struct number_t *result)
     asm("ldy %v", temp_lo);
     asm("lda %v", temp_hi);
     asm("JSR $FE03"); // GIVAYF -- puts A/Y into FAC
+
+    get_fac(result);
+}
+
+void m_cstr_to_number(const char* s, struct number_t* result)
+{
+    uint8_t i;
+    uint8_t found_decimal = 0;
+    uint8_t decimal_count = 0;
+    uint8_t is_negative = 0;
+
+    zero_fac();
+
+    for (i = 0;*(s + i);++i)
+    {
+        if ((i == 0) && ((s[i] == '-') || (s[i] == '+')))
+        {
+            is_negative = (s[i] == '-');
+        }
+        else if ((s[i] >= '0') && (s[i] <= '9'))
+        {
+            mul10();
+            finlog(s[i] - '0');
+            decimal_count++;
+        }
+        else if (s[i] == '.')
+        {
+            // !!! TODO Maybe complain if found_decimal is already 1
+            found_decimal = 1;
+            decimal_count = 0;
+        }
+    }
+
+    if (found_decimal)
+        for (i = 0;i < decimal_count;++i)
+            div10();
+
+    if (is_negative)
+        negop();
 
     get_fac(result);
 }
