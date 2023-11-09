@@ -131,3 +131,24 @@ void m_divide(const struct number_t* a, const struct number_t* b, struct number_
     asm("JSR $FE27"); // FDIVT -- FAC = ARG / FAC
     get_fac(result);
 }
+
+void m_multiply(const struct number_t* a, const struct number_t* b, struct number_t* result)
+{
+    setup_fac_arg(a, b);
+    asm("JSR $FE21"); // FMULTT -- FAC = ARG * FAC
+    get_fac(result);
+}
+
+void m_add(const struct number_t* a, const struct number_t* b, struct number_t* result)
+{
+    setup_fac_arg(a, b);
+    asm("JSR $FE1B"); // FADDT -- FAC = ARG + FAC
+    get_fac(result);
+}
+
+void m_subtract(const struct number_t* a, const struct number_t* b, struct number_t* result)
+{
+    setup_fac_arg(a, b);
+    asm("JSR $FE15"); // FSUBT -- FAC = ARG - FAC
+    get_fac(result);
+}

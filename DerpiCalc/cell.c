@@ -161,17 +161,34 @@ static void cell_update_number(struct cell_t* cell)
     uint8_t consumed;
     struct number_t a;
     struct number_t b;
+    void (*operator)(const struct number_t* a, const struct number_t* b, struct number_t* result) = NULL;
 
     cell->number_valid = 0;
     m_symbols_to_number(cell->contents, cell->contents_len, &cell->number, &consumed);
     if (consumed < cell->contents_len)
     {
-        if (cell->contents[consumed] == '/')
+        switch (cell->contents[consumed])
+        {
+            case '/':
+                operator = m_divide;
+                break;
+            case '*':
+                operator = m_multiply;
+                break;
+            case '+':
+                operator = m_add;
+                break;
+            case '-':
+                operator = m_subtract;
+                break;
+        }
+
+        if (operator)
         {
             memcpy(&a, &cell->number, sizeof(a));
             ++consumed;
             m_symbols_to_number(cell->contents + consumed, cell->contents_len, &b, &consumed);
-            m_divide(&a, &b, &cell->number);
+            operator(&a, &b, &cell->number);
             cell->number_valid = 1;
         }
     }
