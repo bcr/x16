@@ -158,9 +158,25 @@ void c_set_cell_label(uint8_t col, uint8_t row, const uint8_t* label, uint8_t le
 
 static void cell_update_number(struct cell_t* cell)
 {
+    uint8_t consumed;
+    struct number_t a;
+    struct number_t b;
+
     cell->number_valid = 0;
-    m_symbols_to_number(cell->contents, cell->contents_len, &cell->number);
-    cell->number_valid = 1;
+    m_symbols_to_number(cell->contents, cell->contents_len, &cell->number, &consumed);
+    if (consumed < cell->contents_len)
+    {
+        if (cell->contents[consumed] == '/')
+        {
+            memcpy(&a, &cell->number, sizeof(a));
+            ++consumed;
+            m_symbols_to_number(cell->contents + consumed, cell->contents_len, &b, &consumed);
+            m_divide(&a, &b, &cell->number);
+            cell->number_valid = 1;
+        }
+    }
+    else
+        cell->number_valid = 1;
 }
 
 void c_set_cell_value(uint8_t col, uint8_t row, const uint8_t* value, uint8_t len)

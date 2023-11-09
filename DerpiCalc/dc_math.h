@@ -10,7 +10,7 @@ struct number_t
 };
 
 void m_int_to_number(int16_t i, struct number_t *result);
-void m_symbols_to_number(const uint8_t* s, uint8_t len, struct number_t* result);
+void m_symbols_to_number(const uint8_t* s, uint8_t len, struct number_t* result, uint8_t* consumed);
 volatile const char* m_number_to_cstr(const struct number_t* n);
 void m_divide(const struct number_t* a, const struct number_t* b, struct number_t* result);
 
