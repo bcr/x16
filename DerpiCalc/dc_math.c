@@ -55,7 +55,7 @@ void m_int_to_number(int16_t i, struct number_t *result)
     get_fac(result);
 }
 
-void m_cstr_to_number(const char* s, struct number_t* result)
+void m_symbols_to_number(const uint8_t* s, uint8_t len, struct number_t* result)
 {
     uint8_t i;
     uint8_t found_decimal = 0;
@@ -64,7 +64,7 @@ void m_cstr_to_number(const char* s, struct number_t* result)
 
     zero_fac();
 
-    for (i = 0;*(s + i);++i)
+    for (i = 0;i < len;++i)
     {
         if ((i == 0) && ((s[i] == '-') || (s[i] == '+')))
         {

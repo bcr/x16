@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "cell.h"
+#include "dc_math.h"
 
 #define SYMBOL_SPACE 0x20
 #define SYMBOL_LATIN_CAPITAL_LETTER_A 0x41
@@ -32,6 +33,8 @@ struct cell_t
     uint8_t* contents;
     uint8_t value_len;
     uint8_t* value;
+    uint8_t number_valid;
+    struct number_t number;
     struct cell_t* next;
 };
 
@@ -83,6 +86,7 @@ static void cell_update_value(struct cell_t* cell)
     uint8_t i;
     uint8_t bytes_to_copy;
     uint8_t bytes_to_alloc = 9; // !!! TODO 9?!
+    const volatile char* cstr_number;
 
     if (cell->value)
     {
@@ -99,6 +103,19 @@ static void cell_update_value(struct cell_t* cell)
         bytes_to_copy = cell->value_len;
         for (i = 0;i < bytes_to_copy;++i)
             cell->value[i] = cell->contents[i % cell->contents_len];
+    }
+    else if (cell->type == CELL_TYPE_VALUE)
+    {
+        if (cell->number_valid)
+        {
+            cstr_number = m_number_to_cstr(&cell->number);
+            for (i = 0;((*(cstr_number + i)) && (i < cell->value_len));++i)
+                cell->value[i] = *(cstr_number + i);
+        }
+        else
+            i = 0;
+        for (;i < cell->value_len;++i)
+            cell->value[i] = SYMBOL_SPACE;
     }
     else
     {
@@ -136,6 +153,24 @@ void c_set_cell_label(uint8_t col, uint8_t row, const uint8_t* label, uint8_t le
     cell = find_cell(col, row, 1);
     cell->type = CELL_TYPE_LABEL;
     cell_set_contents(cell, label, len);
+    cell_update_value(cell);
+}
+
+static void cell_update_number(struct cell_t* cell)
+{
+    cell->number_valid = 0;
+    m_symbols_to_number(cell->contents, cell->contents_len, &cell->number);
+    cell->number_valid = 1;
+}
+
+void c_set_cell_value(uint8_t col, uint8_t row, const uint8_t* value, uint8_t len)
+{
+    struct cell_t* cell;
+
+    cell = find_cell(col, row, 1);
+    cell->type = CELL_TYPE_VALUE;
+    cell_set_contents(cell, value, len);
+    cell_update_number(cell);
     cell_update_value(cell);
 }
 
