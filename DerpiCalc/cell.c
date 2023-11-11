@@ -198,3 +198,17 @@ void c_blank_cell(uint8_t col, uint8_t row)
         cell_update_value(cell);
     }
 }
+
+uint8_t c_get_cell_number(uint8_t col, uint8_t row, struct number_t* result)
+{
+    struct cell_t* cell;
+    cell = find_cell(col, row, 0);
+    if ((cell != NULL) && (cell->number_valid))
+    {
+        memcpy(result, &cell->number, sizeof(struct number_t));
+        return EVALUATE_OK;
+    }
+    // !!! TODO Should zero be a simpler process?
+    e_evaluate("0", 1, result);
+    return EVALUATE_OK;
+}

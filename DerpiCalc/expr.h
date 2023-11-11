@@ -6,6 +6,7 @@
 #define EVALUATE_UNBALANCED_PARENS 2
 #define EVALUATE_TOO_COMPLEX 3
 #define EVALUATE_GENERAL_ERROR 4
+#define EVALUATE_BAD_CELL_REFERENCE 5
 
 uint8_t e_evaluate(const uint8_t* expression, uint8_t len, struct number_t* result);
 
