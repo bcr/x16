@@ -7,9 +7,6 @@
 #include "expr.h"
 #include "util.h"
 
-#define MAX_CELL_COLUMN 63
-#define MAX_CELL_ROW 254
-
 #define COLUMNS_PER_BLOCK 8
 #define ROWS_PER_BLOCK 64
 
@@ -82,7 +79,7 @@ static void cell_update_value(struct cell_t* cell)
 {
     uint8_t i;
     uint8_t bytes_to_copy;
-    uint8_t bytes_to_alloc = 9; // !!! TODO 9?!
+    uint8_t bytes_to_alloc = COLUMN_WIDTH;
     const volatile char* cstr_number;
 
     if (cell->value)

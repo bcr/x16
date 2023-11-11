@@ -1,6 +1,11 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#define MAX_CELL_COLUMN 63
+#define MAX_CELL_ROW 254
+
+#define COLUMN_WIDTH 9
+
 #define SYMBOL_SPACE 0x20
 #define SYMBOL_LATIN_CAPITAL_LETTER_A 0x41
 #define SYMBOL_LATIN_SMALL_LETTER_A 0x01

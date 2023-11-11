@@ -13,7 +13,6 @@
 #define CLAMP_ADD(X, Y, MAX) ((((MAX) - (X)) <= (Y)) ? ((Y) - ((MAX) - (X))): ((X) + (Y)))
 #define CLAMP_SUB(X, Y, MAX) (((X) < (Y)) ? ((MAX) - ((Y) - (X))) : ((X) - (Y)))
 
-#define COLUMN_WIDTH 9
 #define NUMBER_CELL_COLUMNS ((WIDTH_CHARS - 3) / COLUMN_WIDTH)
 #define NUMBER_CELL_ROWS (HEIGHT_CHARS - 4)
 
