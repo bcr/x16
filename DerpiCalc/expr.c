@@ -92,6 +92,26 @@ static uint8_t m_symbols_to_cellref(const uint8_t* s, uint8_t len, uint8_t* cons
     return EVALUATE_OK;
 }
 
+static uint8_t e_symbols_to_at(const uint8_t* expression, uint8_t len, struct number_t* result, uint8_t* consumed)
+{
+    uint8_t rc = EVALUATE_BAD_AT_SEQUENCE;
+
+    *consumed = 0;
+    if (len >= 3)
+    {
+        if (((expression[1] - SYMBOL_LATIN_CAPITAL_LETTER_A) == ('P' - 'A')) &&
+            ((expression[2] - SYMBOL_LATIN_CAPITAL_LETTER_A) == ('I' - 'A')))
+        {
+            // !!! TODO Should constants be a simpler process?
+            e_evaluate("3.1415926536", 12, result);
+            *consumed = 3;
+            rc = EVALUATE_OK;
+        }
+    }
+
+    return rc;
+}
+
 static uint8_t e_symbols_to_number(const uint8_t* expression, uint8_t len, struct number_t* result, uint8_t* consumed)
 {
     uint8_t rc;
@@ -103,6 +123,12 @@ static uint8_t e_symbols_to_number(const uint8_t* expression, uint8_t len, struc
         if (rc != EVALUATE_OK)
             return rc;
         rc = c_get_cell_number(CELLREF_GET_COL(cellref), CELLREF_GET_ROW(cellref), result);
+        if (rc != EVALUATE_OK)
+            return rc;
+    }
+    else if (expression[0] == SYMBOL_COMMERCIAL_AT)
+    {
+        rc = e_symbols_to_at(expression, len, result, consumed);
         if (rc != EVALUATE_OK)
             return rc;
     }
