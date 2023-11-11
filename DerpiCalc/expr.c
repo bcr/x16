@@ -83,6 +83,16 @@ uint8_t e_evaluate(const uint8_t* expression, uint8_t len, struct number_t* resu
         {
             m_symbols_to_number(expression + index, len - index, &(operands[current_operand]), &consumed);
             ++current_operand;
+            if ((current_operand > 1) && (current_operator > 0) && (operators[current_operator - 1] != '('))
+            {
+                operator = get_operator_func(operators[current_operator - 1], &rc);
+                if (rc != EVALUATE_OK)
+                    return rc;
+                if (operator != NULL)
+                    operator(&(operands[current_operand - 2]), &(operands[current_operand - 1]), &(operands[current_operand - 2]));
+                --current_operand;
+                --current_operator;
+            }
         }
         index += consumed;
     }
