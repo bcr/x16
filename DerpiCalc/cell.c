@@ -4,6 +4,7 @@
 
 #include "cell.h"
 #include "dc_math.h"
+#include "expr.h"
 
 #define SYMBOL_SPACE 0x20
 #define SYMBOL_LATIN_CAPITAL_LETTER_A 0x41
@@ -158,42 +159,11 @@ void c_set_cell_label(uint8_t col, uint8_t row, const uint8_t* label, uint8_t le
 
 static void cell_update_number(struct cell_t* cell)
 {
-    uint8_t consumed;
-    struct number_t a;
-    struct number_t b;
-    void (*operator)(const struct number_t* a, const struct number_t* b, struct number_t* result) = NULL;
+    uint8_t rc = EVALUATE_GENERAL_ERROR;
 
     cell->number_valid = 0;
-    m_symbols_to_number(cell->contents, cell->contents_len, &cell->number, &consumed);
-    if (consumed < cell->contents_len)
-    {
-        switch (cell->contents[consumed])
-        {
-            case '/':
-                operator = m_divide;
-                break;
-            case '*':
-                operator = m_multiply;
-                break;
-            case '+':
-                operator = m_add;
-                break;
-            case '-':
-                operator = m_subtract;
-                break;
-        }
-
-        if (operator)
-        {
-            memcpy(&a, &cell->number, sizeof(a));
-            ++consumed;
-            m_symbols_to_number(cell->contents + consumed, cell->contents_len, &b, &consumed);
-            operator(&a, &b, &cell->number);
-            cell->number_valid = 1;
-        }
-    }
-    else
-        cell->number_valid = 1;
+    rc = e_evaluate(cell->contents, cell->contents_len, &cell->number);
+    cell->number_valid = (rc == EVALUATE_OK);
 }
 
 void c_set_cell_value(uint8_t col, uint8_t row, const uint8_t* value, uint8_t len)
