@@ -7,6 +7,29 @@
 #define MAX_OPERATORS 10
 #define MAX_OPERANDS 10
 
+typedef void (*operator_func)(const struct number_t* a, const struct number_t* b, struct number_t* result);
+
+static operator_func get_operator_func(uint8_t operator, uint8_t* rc)
+{
+    *rc = EVALUATE_OK;
+    switch (operator)
+    {
+        case '/':
+            return m_divide;
+        case '*':
+            return m_multiply;
+        case '+':
+            return m_add;
+        case '-':
+            return m_subtract;
+        case '(':
+            return NULL;
+        default:
+            *rc = EVALUATE_UNKNOWN_OPERATOR;
+            return NULL;
+    }
+}
+
 uint8_t e_evaluate(const uint8_t* expression, uint8_t len, struct number_t* result)
 {
     uint8_t operators[MAX_OPERATORS];
@@ -16,7 +39,8 @@ uint8_t e_evaluate(const uint8_t* expression, uint8_t len, struct number_t* resu
     uint8_t index = 0;
     uint8_t this_symbol;
     uint8_t consumed;
-    void (*operator)(const struct number_t* a, const struct number_t* b, struct number_t* result) = NULL;
+    uint8_t rc;
+    operator_func operator;
 
     while (index < len)
     {
@@ -36,25 +60,9 @@ uint8_t e_evaluate(const uint8_t* expression, uint8_t len, struct number_t* resu
         {
             while (current_operator > 0)
             {
-                switch (operators[current_operator - 1])
-                {
-                    case '/':
-                        operator = m_divide;
-                        break;
-                    case '*':
-                        operator = m_multiply;
-                        break;
-                    case '+':
-                        operator = m_add;
-                        break;
-                    case '-':
-                        operator = m_subtract;
-                        break;
-                    case '(':
-                        break;
-                    default:
-                        return EVALUATE_UNKNOWN_OPERATOR;
-                }
+                operator = get_operator_func(operators[current_operator - 1], &rc);
+                if (rc != EVALUATE_OK)
+                    return rc;
                 if (operators[current_operator - 1] == '(')
                 {
                     --current_operator;
@@ -81,25 +89,9 @@ uint8_t e_evaluate(const uint8_t* expression, uint8_t len, struct number_t* resu
 
     while (current_operator > 0)
     {
-        switch (operators[current_operator - 1])
-        {
-            case '/':
-                operator = m_divide;
-                break;
-            case '*':
-                operator = m_multiply;
-                break;
-            case '+':
-                operator = m_add;
-                break;
-            case '-':
-                operator = m_subtract;
-                break;
-            case '(':
-                break;
-            default:
-                return EVALUATE_UNKNOWN_OPERATOR;
-        }
+        operator = get_operator_func(operators[current_operator - 1], &rc);
+        if (rc != EVALUATE_OK)
+            return rc;
         if (operators[current_operator - 1] == '(')
         {
             return EVALUATE_UNBALANCED_PARENS;
