@@ -4,6 +4,7 @@
 
 #include "screen.h"
 #include "cell.h"
+#include "util.h"
 
 #include "ui.h"
 #include "ui_internal.h"

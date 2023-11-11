@@ -3,6 +3,7 @@
 #include "input.h"
 #include "keyboard.h"
 #include "ui.h"
+#include "util.h"
 
 static const uint8_t* in_handle_edit_line(const char* prompt, uint8_t key, uint8_t* rc, uint8_t* len)
 {

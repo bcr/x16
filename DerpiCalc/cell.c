@@ -5,11 +5,7 @@
 #include "cell.h"
 #include "dc_math.h"
 #include "expr.h"
-
-#define SYMBOL_SPACE 0x20
-#define SYMBOL_LATIN_CAPITAL_LETTER_A 0x41
-#define SYMBOL_LATIN_SMALL_LETTER_A 0x01
-#define SYMBOL_DIGIT_ZERO 0x30
+#include "util.h"
 
 #define MAX_CELL_COLUMN 63
 #define MAX_CELL_ROW 254

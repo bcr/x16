@@ -2,6 +2,7 @@
 
 #include "ui.h"
 #include "ui_internal.h"
+#include "util.h"
 
 #define EDIT_BUFFER_LENGTH 79
 

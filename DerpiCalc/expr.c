@@ -1,16 +1,13 @@
 #include <string.h>
 
+#include "cell.h"
 #include "dc_math.h"
-#include "ui.h"
+#include "util.h"
 
 #include "expr.h"
 
 #define MAX_OPERATORS 10
 #define MAX_OPERANDS 10
-
-#define SYMBOL_LATIN_CAPITAL_LETTER_A 0x41
-#define SYMBOL_LATIN_SMALL_LETTER_A 0x01
-#define SYMBOL_DIGIT_ZERO 0x30
 
 typedef void (*operator_func)(const struct number_t* a, const struct number_t* b, struct number_t* result);
 
