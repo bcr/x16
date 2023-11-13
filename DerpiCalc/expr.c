@@ -92,23 +92,65 @@ static uint8_t m_symbols_to_cellref(const uint8_t* s, uint8_t len, uint8_t* cons
     return EVALUATE_OK;
 }
 
-static uint8_t e_symbols_to_at(const uint8_t* expression, uint8_t len, struct number_t* result, uint8_t* consumed)
-{
-    uint8_t rc = EVALUATE_BAD_AT_SEQUENCE;
+#define ATFUNC_UNKNOWN 0
+#define ATFUNC_PI 1
 
-    *consumed = 0;
-    if (len >= 3)
+struct at_func
+{
+    const char* name;
+    uint8_t value;
+};
+
+#define ATFUNC_ENTRY(X) { #X, ATFUNC_##X },
+#define ATFUNC_LAST_ENTRY { "", ATFUNC_UNKNOWN }
+
+static const struct at_func zero_len_at_funcs[] = {
+    ATFUNC_ENTRY(PI)
+
+    ATFUNC_LAST_ENTRY
+    };
+
+static uint8_t find_symbol(const struct at_func* functions, const uint8_t* expression, uint8_t len, uint8_t* consumed)
+{
+    uint8_t i;
+    uint8_t pos;
+
+    // Skip the atsign
+    ++expression;
+    --len;
+
+    for (i = 0;functions[i].value != ATFUNC_UNKNOWN;++i)
     {
-        if (((expression[1] - SYMBOL_LATIN_CAPITAL_LETTER_A) == ('P' - 'A')) &&
-            ((expression[2] - SYMBOL_LATIN_CAPITAL_LETTER_A) == ('I' - 'A')))
-        {
-            // !!! TODO Should constants be a simpler process?
-            e_evaluate("3.1415926536", 12, result);
-            *consumed = 3;
-            rc = EVALUATE_OK;
-        }
+        for (pos = 0;
+            (functions[i].name[pos]) && (pos < len) &&
+            ((functions[i].name[pos] - 'A') == (expression[pos] - SYMBOL_LATIN_CAPITAL_LETTER_A));
+            ++pos)
+            ;
+        if (functions[i].name[pos] == 0)
+            break;
     }
 
+    *consumed = (strlen(functions[i].name) + 1);
+    return functions[i].value;
+}
+
+static uint8_t e_symbols_to_at(const uint8_t* expression, uint8_t len, struct number_t* result, uint8_t* consumed)
+{
+    uint8_t rc = EVALUATE_OK;
+    uint8_t atfunc;
+
+    *consumed = 0;
+    atfunc = find_symbol(zero_len_at_funcs, expression, len, consumed);
+    switch (atfunc)
+    {
+        case ATFUNC_PI:
+            // !!! TODO Should constants be a simpler process?
+            e_evaluate("3.1415926536", 12, result);
+            break;
+        default:
+            rc = EVALUATE_BAD_AT_SEQUENCE;
+            break;
+    }
     return rc;
 }
 
@@ -141,95 +183,85 @@ static uint8_t e_symbols_to_number(const uint8_t* expression, uint8_t len, struc
     return rc;
 }
 
+static uint8_t find_closing_paren(const uint8_t* expression, uint8_t len, uint8_t* closing_paren_index)
+{
+    uint8_t i;
+    uint8_t paren_count = 0;
+
+    for (i = 0;i < len;++i)
+    {
+        if (expression[i] == '(')
+            ++paren_count;
+        else if (expression[i] == ')')
+            --paren_count;
+        if (paren_count == 0)
+            break;
+    }
+
+    if (paren_count > 0)
+        return EVALUATE_UNBALANCED_PARENS;
+
+    *closing_paren_index = i;
+    return EVALUATE_OK;
+}
+
 uint8_t e_evaluate(const uint8_t* expression, uint8_t len, struct number_t* result)
 {
-    uint8_t operators[MAX_OPERATORS];
     int8_t current_operator = 0;
-    struct number_t operands[MAX_OPERANDS];
-    int8_t current_operand = 0;
+    struct number_t operand_a;
+    struct number_t operand_b;
     uint8_t index = 0;
     uint8_t this_symbol;
     uint8_t consumed;
     uint8_t rc;
     operator_func operator;
+    uint8_t closing_paren_index;
+    uint8_t perform_operation = 0;
 
     while (index < len)
     {
-        if ((current_operand >= MAX_OPERANDS) || (current_operator >= MAX_OPERATORS))
-        {
-            return EVALUATE_TOO_COMPLEX;
-        }
-
         this_symbol = expression[index];
-        consumed = 1;
-        if ((this_symbol == '(') || (this_symbol == '+') || (this_symbol == '*') || (this_symbol == '/')  || (this_symbol == '-'))
+        if (this_symbol == '(')
         {
-            operators[current_operator] = this_symbol;
-            ++current_operator;
-        }
-        else if (this_symbol == ')')
-        {
-            while (current_operator > 0)
-            {
-                operator = get_operator_func(operators[current_operator - 1], &rc);
-                if (rc != EVALUATE_OK)
-                    return rc;
-                if (operators[current_operator - 1] == '(')
-                {
-                    --current_operator;
-                    break;
-                }
-                if (current_operand < 2)
-                {
-                    return EVALUATE_GENERAL_ERROR;
-                }
+            rc = find_closing_paren(expression + index, len - index, &closing_paren_index);
+            if (rc != EVALUATE_OK)
+                return rc;
 
-                if (operator != NULL)
-                    operator(&(operands[current_operand - 2]), &(operands[current_operand - 1]), &(operands[current_operand - 2]));
-                --current_operator;
-                --current_operand;
-            }
+            // Start past the open paren, end before the close paren
+            rc = e_evaluate(expression + index + 1, closing_paren_index - 1, (current_operator) ? &operand_b : &operand_a);
+            if (rc != EVALUATE_OK)
+                return rc;
+            if (current_operator)
+                perform_operation = 1;
+            index += (closing_paren_index + 1);
+        }
+        else if ((this_symbol == '+') || (this_symbol == '*') || (this_symbol == '/')  || (this_symbol == '-'))
+        {
+            current_operator = this_symbol;
+            index += 1;
         }
         else
         {
-            rc = e_symbols_to_number(expression + index, len - index, &(operands[current_operand]), &consumed);
+            rc = e_symbols_to_number(expression + index, len - index, (current_operator) ? &operand_b : &operand_a, &consumed);
             if (rc != EVALUATE_OK)
                 return rc;
-            ++current_operand;
-            if ((current_operand > 1) && (current_operator > 0) && (operators[current_operator - 1] != '('))
-            {
-                operator = get_operator_func(operators[current_operator - 1], &rc);
-                if (rc != EVALUATE_OK)
-                    return rc;
-                if (operator != NULL)
-                    operator(&(operands[current_operand - 2]), &(operands[current_operand - 1]), &(operands[current_operand - 2]));
-                --current_operand;
-                --current_operator;
-            }
+            if (current_operator)
+                perform_operation = 1;
+            index += consumed;
         }
-        index += consumed;
+
+        if (perform_operation)
+        {
+            operator = get_operator_func(current_operator, &rc);
+            if (rc != EVALUATE_OK)
+                return rc;
+            if (operator != NULL)
+                operator(&operand_a, &operand_b, &operand_a);
+            current_operator = 0;
+            perform_operation = 0;
+        }
     }
 
-    while (current_operator > 0)
-    {
-        operator = get_operator_func(operators[current_operator - 1], &rc);
-        if (rc != EVALUATE_OK)
-            return rc;
-        if (operators[current_operator - 1] == '(')
-        {
-            return EVALUATE_UNBALANCED_PARENS;
-        }
-        if (current_operand < 2)
-        {
-            return EVALUATE_GENERAL_ERROR;
-        }
-
-        if (operator != NULL)
-            operator(&(operands[current_operand - 2]), &(operands[current_operand - 1]), &(operands[current_operand - 2]));
-        --current_operator;
-        --current_operand;
-    }
-
-    memcpy(result, &operands[0], sizeof(struct number_t));
+    memcpy(result, &operand_a, sizeof(struct number_t));
     return EVALUATE_OK;
 }
