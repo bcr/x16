@@ -110,6 +110,15 @@ volatile const char* m_number_to_cstr(const struct number_t* n)
     return fout_output;
 }
 
+static void setup_fac(const struct number_t* a)
+{
+    temp_hi = ((uint16_t) a->number) >> 8;
+    temp_lo = ((uint16_t) a->number) & 0x0ff;
+    asm("lda %v", temp_lo);
+    asm("ldy %v", temp_hi);
+    asm("JSR $FE63"); // MOVFM -- move memory to FAC
+}
+
 static void setup_fac_arg(const struct number_t* a, const struct number_t* b)
 {
     temp_hi = ((uint16_t) a->number) >> 8;
@@ -118,11 +127,7 @@ static void setup_fac_arg(const struct number_t* a, const struct number_t* b)
     asm("ldy %v", temp_hi);
     asm("JSR $FE5D"); // ROMUPK -- move memory to ARG
 
-    temp_hi = ((uint16_t) b->number) >> 8;
-    temp_lo = ((uint16_t) b->number) & 0x0ff;
-    asm("lda %v", temp_lo);
-    asm("ldy %v", temp_hi);
-    asm("JSR $FE63"); // MOVFM -- move memory to FAC
+    setup_fac(b);
 }
 
 void m_divide(const struct number_t* a, const struct number_t* b, struct number_t* result)
@@ -150,5 +155,12 @@ void m_subtract(const struct number_t* a, const struct number_t* b, struct numbe
 {
     setup_fac_arg(a, b);
     asm("JSR $FE15"); // FSUBT -- FAC = ARG - FAC
+    get_fac(result);
+}
+
+void m_abs(const struct number_t* a, struct number_t* result)
+{
+    setup_fac(a);
+    asm("JSR $FE4E"); // ABS -- FAC = ABS(FAC)
     get_fac(result);
 }

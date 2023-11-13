@@ -94,6 +94,7 @@ static uint8_t m_symbols_to_cellref(const uint8_t* s, uint8_t len, uint8_t* cons
 
 #define ATFUNC_UNKNOWN 0
 #define ATFUNC_PI 1
+#define ATFUNC_ABS 2
 
 struct at_func
 {
@@ -106,6 +107,7 @@ struct at_func
 
 static const struct at_func zero_len_at_funcs[] = {
     ATFUNC_ENTRY(PI)
+    ATFUNC_ENTRY(ABS)
 
     ATFUNC_LAST_ENTRY
     };
@@ -134,10 +136,33 @@ static uint8_t find_symbol(const struct at_func* functions, const uint8_t* expre
     return functions[i].value;
 }
 
+static uint8_t find_closing_paren(const uint8_t* expression, uint8_t len, uint8_t* closing_paren_index)
+{
+    uint8_t i;
+    uint8_t paren_count = 0;
+
+    for (i = 0;i < len;++i)
+    {
+        if (expression[i] == '(')
+            ++paren_count;
+        else if (expression[i] == ')')
+            --paren_count;
+        if (paren_count == 0)
+            break;
+    }
+
+    if (paren_count > 0)
+        return EVALUATE_UNBALANCED_PARENS;
+
+    *closing_paren_index = i;
+    return EVALUATE_OK;
+}
+
 static uint8_t e_symbols_to_at(const uint8_t* expression, uint8_t len, struct number_t* result, uint8_t* consumed)
 {
     uint8_t rc = EVALUATE_OK;
     uint8_t atfunc;
+    uint8_t closing_paren_index;
 
     *consumed = 0;
     atfunc = find_symbol(zero_len_at_funcs, expression, len, consumed);
@@ -146,6 +171,17 @@ static uint8_t e_symbols_to_at(const uint8_t* expression, uint8_t len, struct nu
         case ATFUNC_PI:
             // !!! TODO Should constants be a simpler process?
             e_evaluate("3.1415926536", 12, result);
+            break;
+        case ATFUNC_ABS:
+            rc = find_closing_paren(expression + *consumed, len - *consumed, &closing_paren_index);
+            if (rc != EVALUATE_OK)
+                return rc;
+            // Start past the open paren, end before the close paren
+            rc = e_evaluate(expression + *consumed + 1, closing_paren_index - 1, result);
+            if (rc != EVALUATE_OK)
+                return rc;
+            m_abs(result, result);
+            *consumed += (closing_paren_index + 1);
             break;
         default:
             rc = EVALUATE_BAD_AT_SEQUENCE;
@@ -181,28 +217,6 @@ static uint8_t e_symbols_to_number(const uint8_t* expression, uint8_t len, struc
     }
 
     return rc;
-}
-
-static uint8_t find_closing_paren(const uint8_t* expression, uint8_t len, uint8_t* closing_paren_index)
-{
-    uint8_t i;
-    uint8_t paren_count = 0;
-
-    for (i = 0;i < len;++i)
-    {
-        if (expression[i] == '(')
-            ++paren_count;
-        else if (expression[i] == ')')
-            --paren_count;
-        if (paren_count == 0)
-            break;
-    }
-
-    if (paren_count > 0)
-        return EVALUATE_UNBALANCED_PARENS;
-
-    *closing_paren_index = i;
-    return EVALUATE_OK;
 }
 
 uint8_t e_evaluate(const uint8_t* expression, uint8_t len, struct number_t* result)

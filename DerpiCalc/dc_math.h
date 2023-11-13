@@ -16,5 +16,6 @@ void m_divide(const struct number_t* a, const struct number_t* b, struct number_
 void m_multiply(const struct number_t* a, const struct number_t* b, struct number_t* result);
 void m_add(const struct number_t* a, const struct number_t* b, struct number_t* result);
 void m_subtract(const struct number_t* a, const struct number_t* b, struct number_t* result);
+void m_abs(const struct number_t* a, struct number_t* result);
 
 #endif /* DC_MATH_H */
