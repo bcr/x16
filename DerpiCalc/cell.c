@@ -13,11 +13,6 @@
 #define NUMBER_HORIZONTAL_BLOCKS ((MAX_CELL_COLUMN + (COLUMNS_PER_BLOCK - 1)) / COLUMNS_PER_BLOCK)
 #define NUMBER_VERTICAL_BLOCKS ((MAX_CELL_ROW + (ROWS_PER_BLOCK - 1)) / ROWS_PER_BLOCK)
 
-#define CELL_TYPE_LABEL 0
-#define CELL_TYPE_VALUE 1
-#define CELL_TYPE_REPEATING 2
-#define CELL_TYPE_BLANK 3
-
 struct cell_t
 {
     uint8_t type;
@@ -204,4 +199,24 @@ uint8_t c_get_cell_number(uint8_t col, uint8_t row, struct number_t* result)
     // !!! TODO Should zero be a simpler process?
     e_evaluate("0", 1, result);
     return EVALUATE_OK;
+}
+
+uint8_t c_get_cell_type(uint8_t col, uint8_t row)
+{
+    struct cell_t* cell;
+    cell = find_cell(col, row, 0);
+    return (cell != NULL) ? cell->type : CELL_TYPE_BLANK;
+}
+
+const uint8_t* c_get_cell_contents(uint8_t col, uint8_t row, uint8_t* contents_len)
+{
+    struct cell_t* cell;
+    cell = find_cell(col, row, 0);
+    if (cell != NULL)
+    {
+        *contents_len = cell->contents_len;
+        return cell->contents;
+    }
+    *contents_len = 0;
+    return NULL;
 }

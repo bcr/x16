@@ -83,23 +83,78 @@ void ui_draw_prompt_line(const char* prompt)
     last_prompt_line_length = this_prompt_line_length;
 }
 
-static void ui_draw_cell_location(uint8_t col, uint8_t row)
+static void put_symbols(const uint8_t* symbols, uint8_t len, uint8_t color)
 {
+    uint8_t i;
+    for (i = 0;i < len;++i)
+        s_put_symbol(symbols[i], color);
+}
+
+static void ui_draw_cell_contents(uint8_t col, uint8_t row)
+{
+    uint8_t cell_type;
+    uint8_t symbols_output = 0;
+    const uint8_t* contents;
+    uint8_t contents_len;
+    uint8_t symbols_to_output;
+
     if (col >= 26)
+    {
         s_put_symbol((col / 26 - 1) + SYMBOL_LATIN_CAPITAL_LETTER_A, INVERSE_COLOR);
+        symbols_output += 1;
+    }
     s_put_symbol(col % 26 + SYMBOL_LATIN_CAPITAL_LETTER_A, INVERSE_COLOR);
+    symbols_output += 1;
 
     row++;
     if (row >= 100)
+    {
         s_put_symbol((row / 100) + SYMBOL_DIGIT_ZERO, INVERSE_COLOR);
+        symbols_output += 1;
+    }
     if (row >= 10)
+    {
         s_put_symbol((row / 10 % 10) + SYMBOL_DIGIT_ZERO, INVERSE_COLOR);
+        symbols_output += 1;
+    }
     s_put_symbol((row % 10) + SYMBOL_DIGIT_ZERO, INVERSE_COLOR);
+    symbols_output += 1;
     row--;
 
     s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR);
+    symbols_output += 1;
     s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR);
+    symbols_output += 1;
+
+    cell_type = c_get_cell_type(col, row);
+    switch (cell_type)
+    {
+        case CELL_TYPE_LABEL:
+            ui_draw_asciiz("(L)", INVERSE_COLOR);
+            symbols_output += 3;
+            break;
+        case CELL_TYPE_VALUE:
+            ui_draw_asciiz("(V)", INVERSE_COLOR);
+            symbols_output += 3;
+            break;
+        case CELL_TYPE_REPEATING:
+            ui_draw_asciiz("(/-)", INVERSE_COLOR);
+            symbols_output += 4;
+            break;
+    }
+
     s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR);
+    symbols_output += 1;
+
+    contents = c_get_cell_contents(col, row, &contents_len);
+    symbols_to_output = (contents_len <= (WIDTH_CHARS - symbols_output)) ? contents_len : (WIDTH_CHARS - symbols_output);
+    put_symbols(contents, symbols_to_output, INVERSE_COLOR);
+    symbols_output += symbols_to_output;
+
+    for (;symbols_output < WIDTH_CHARS;++symbols_output)
+    {
+        s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR);
+    }
 }
 
 static void ui_draw_row_headers()
@@ -217,7 +272,7 @@ static void adjust_active_cell(uint8_t new_active_cell_column, uint8_t new_activ
     x = 0;
     y = 0;
     s_set_position(x, y, LAYER_UI);
-    ui_draw_cell_location(ul_cell_column + active_cell_column, ul_cell_row + active_cell_row);
+    ui_draw_cell_contents(ul_cell_column + active_cell_column, ul_cell_row + active_cell_row);
 }
 
 void ui_init(void)
