@@ -26,40 +26,11 @@ static uint8_t x_offset, y_offset;
 
 static uint8_t ui_draw_asciiz(const char* asciiz, uint8_t color)
 {
-    uint8_t symbol;
     uint8_t symbols_drawn = 0;
 
     while (*asciiz)
     {
-        symbol = *asciiz;
-        if ((symbol >= 'a') && (symbol <= 'z'))
-        {
-            symbol = symbol - 'a' + SYMBOL_LATIN_SMALL_LETTER_A;
-        }
-        else if ((symbol >= 'A') && (symbol <= 'Z'))
-        {
-            symbol = symbol - 'A' + SYMBOL_LATIN_CAPITAL_LETTER_A;
-        }
-        else if ((symbol >= ' ') && (symbol <= '?'))
-        {
-        }
-        else if (symbol == '[')
-        {
-            symbol = 27;
-        }
-        else if (symbol == ']')
-        {
-            symbol = 29;
-        }
-        else if (symbol == '@')
-        {
-            symbol = 0;
-        }
-        else
-        {
-            symbol = '?';
-        }
-        s_put_symbol(symbol, color);
+        s_put_symbol(util_c_char_to_symbol(*asciiz), color);
         ++symbols_drawn;
         ++asciiz;
     }

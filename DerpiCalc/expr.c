@@ -24,8 +24,6 @@ static operator_func get_operator_func(uint8_t operator, uint8_t* rc)
             return m_add;
         case '-':
             return m_subtract;
-        case '(':
-            return NULL;
         default:
             *rc = EVALUATE_UNKNOWN_OPERATOR;
             return NULL;
@@ -95,6 +93,8 @@ static uint8_t m_symbols_to_cellref(const uint8_t* s, uint8_t len, uint8_t* cons
 #define ATFUNC_UNKNOWN 0
 #define ATFUNC_PI 1
 #define ATFUNC_ABS 2
+#define ATFUNC_ERROR 3
+#define ATFUNC_NA 4
 
 struct at_func
 {
@@ -108,6 +108,8 @@ struct at_func
 static const struct at_func zero_len_at_funcs[] = {
     ATFUNC_ENTRY(PI)
     ATFUNC_ENTRY(ABS)
+    ATFUNC_ENTRY(ERROR)
+    ATFUNC_ENTRY(NA)
 
     ATFUNC_LAST_ENTRY
     };
@@ -182,6 +184,12 @@ static uint8_t e_symbols_to_at(const uint8_t* expression, uint8_t len, struct nu
                 return rc;
             m_abs(result, result);
             *consumed += (closing_paren_index + 1);
+            break;
+        case ATFUNC_NA:
+            result->type = NUMBER_TYPE_NA;
+            break;
+        case ATFUNC_ERROR:
+            result->type = NUMBER_TYPE_ERROR;
             break;
         default:
             rc = EVALUATE_BAD_AT_SEQUENCE;
@@ -269,8 +277,12 @@ uint8_t e_evaluate(const uint8_t* expression, uint8_t len, struct number_t* resu
             operator = get_operator_func(current_operator, &rc);
             if (rc != EVALUATE_OK)
                 return rc;
-            if (operator != NULL)
+            if ((operand_a.type == NUMBER_TYPE_NORMAL) && (operand_b.type == NUMBER_TYPE_NORMAL))
                 operator(&operand_a, &operand_b, &operand_a);
+            else if ((operand_a.type == NUMBER_TYPE_ERROR) || (operand_b.type == NUMBER_TYPE_ERROR))
+                operand_a.type = NUMBER_TYPE_ERROR;
+            else if ((operand_a.type == NUMBER_TYPE_NA) || (operand_b.type == NUMBER_TYPE_NA))
+                operand_a.type = NUMBER_TYPE_NA;
             current_operator = 0;
             perform_operation = 0;
         }

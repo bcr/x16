@@ -14,8 +14,9 @@ keyboard.o: keyboard.c keyboard.h
 screen.o: screen.c screen.h
 ui.o: ui.c ui.h ui_internal.h screen.h cell.h util.h
 ui_edit.o: ui_edit.c ui.h ui_internal.h util.h
+util.o: util.c util.h
 
-dc.prg: dc.o dc_math.o cell.o expr.o input.o keyboard.o screen.o ui.o ui_edit.o
+dc.prg: dc.o dc_math.o cell.o expr.o input.o keyboard.o screen.o ui.o ui_edit.o util.o
 
 docs:
 	doxygen

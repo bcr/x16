@@ -22,7 +22,6 @@ struct cell_t
     uint8_t* contents;
     uint8_t value_len;
     uint8_t* value;
-    uint8_t number_valid;
     struct number_t number;
     struct cell_t* next;
 };
@@ -95,14 +94,23 @@ static void cell_update_value(struct cell_t* cell)
     }
     else if (cell->type == CELL_TYPE_VALUE)
     {
-        if (cell->number_valid)
+        switch (cell->number.type)
         {
-            cstr_number = m_number_to_cstr(&cell->number);
-            for (i = 0;((*(cstr_number + i)) && (i < cell->value_len));++i)
-                cell->value[i] = *(cstr_number + i);
+            case NUMBER_TYPE_NORMAL:
+                cstr_number = m_number_to_cstr(&cell->number);
+                for (i = 0;((*(cstr_number + i)) && (i < cell->value_len));++i)
+                    cell->value[i] = *(cstr_number + i);
+                break;
+            case NUMBER_TYPE_NA:
+                i = util_convert_cstr_to_symbol(cell->value, cell->value_len, "NA");
+                break;
+            case NUMBER_TYPE_ERROR:
+                i = util_convert_cstr_to_symbol(cell->value, cell->value_len, "ERROR");
+                break;
+            default:
+                i = 0;
+                break;
         }
-        else
-            i = 0;
         for (;i < cell->value_len;++i)
             cell->value[i] = SYMBOL_SPACE;
     }
@@ -149,9 +157,10 @@ static void cell_update_number(struct cell_t* cell)
 {
     uint8_t rc = EVALUATE_GENERAL_ERROR;
 
-    cell->number_valid = 0;
+    cell->number.type = NUMBER_TYPE_UNINITIALIZED;
     rc = e_evaluate(cell->contents, cell->contents_len, &cell->number);
-    cell->number_valid = (rc == EVALUATE_OK);
+    if (rc != EVALUATE_OK)
+        cell->number.type = NUMBER_TYPE_ERROR;
 }
 
 void c_set_cell_value(uint8_t col, uint8_t row, const uint8_t* value, uint8_t len)
@@ -191,7 +200,7 @@ uint8_t c_get_cell_number(uint8_t col, uint8_t row, struct number_t* result)
 {
     struct cell_t* cell;
     cell = find_cell(col, row, 0);
-    if ((cell != NULL) && (cell->number_valid))
+    if ((cell != NULL) && (cell->number.type != NUMBER_TYPE_UNINITIALIZED))
     {
         memcpy(result, &cell->number, sizeof(struct number_t));
         return EVALUATE_OK;

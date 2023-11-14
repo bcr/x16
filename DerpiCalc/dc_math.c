@@ -15,6 +15,7 @@ static void get_fac(struct number_t* result)
     asm("ldx %v", temp_lo);
     asm("ldy %v", temp_hi);
     asm("JSR $FE66"); // MOVMF -- Stores FAC IN Y/X (result), 5 bytes long
+    result->type = NUMBER_TYPE_NORMAL;
 }
 
 static void zero_fac(void)

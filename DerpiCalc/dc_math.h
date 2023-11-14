@@ -4,8 +4,15 @@
 #include <stdint.h>
 
 #define BASIC_FLOAT_LENGTH 5
+
+#define NUMBER_TYPE_UNINITIALIZED 0
+#define NUMBER_TYPE_NORMAL 1
+#define NUMBER_TYPE_NA 2
+#define NUMBER_TYPE_ERROR 3
+
 struct number_t
 {
+    uint8_t type;
     uint8_t number[BASIC_FLOAT_LENGTH];
 };
 
