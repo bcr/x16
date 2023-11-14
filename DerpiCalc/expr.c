@@ -90,6 +90,24 @@ static uint8_t m_symbols_to_cellref(const uint8_t* s, uint8_t len, uint8_t* cons
     return EVALUATE_OK;
 }
 
+// These are all zero-length @ functions and ignore their first parameter
+#pragma warn (unused-param, push, off)
+static void handle_pi(const struct number_t* a, struct number_t* result)
+{
+    e_evaluate("3.1415926536", 12, result);
+}
+
+static void handle_na(const struct number_t* a, struct number_t* result)
+{
+    result->type = NUMBER_TYPE_NA;
+}
+
+static void handle_error(const struct number_t* a, struct number_t* result)
+{
+    result->type = NUMBER_TYPE_ERROR;
+}
+#pragma warn (unused-param, pop)
+
 #define ATFUNC_UNKNOWN 0
 #define ATFUNC_PI 1
 #define ATFUNC_ABS 2
@@ -100,21 +118,28 @@ struct at_func
 {
     const char* name;
     uint8_t value;
+    void (*handler)(const struct number_t* a, struct number_t* result);
 };
 
-#define ATFUNC_ENTRY(X) { #X, ATFUNC_##X },
+#define ATFUNC_ENTRY(X) { #X, ATFUNC_##X, NULL },
+#define ATFUNC_ENTRY_WITH_HANDLER(X, F) { #X, ATFUNC_##X, F },
 #define ATFUNC_LAST_ENTRY { "", ATFUNC_UNKNOWN }
 
 static const struct at_func zero_len_at_funcs[] = {
-    ATFUNC_ENTRY(PI)
-    ATFUNC_ENTRY(ABS)
-    ATFUNC_ENTRY(ERROR)
-    ATFUNC_ENTRY(NA)
+    ATFUNC_ENTRY_WITH_HANDLER(PI, handle_pi)
+    ATFUNC_ENTRY_WITH_HANDLER(ERROR, handle_error)
+    ATFUNC_ENTRY_WITH_HANDLER(NA, handle_na)
 
     ATFUNC_LAST_ENTRY
     };
 
-static uint8_t find_symbol(const struct at_func* functions, const uint8_t* expression, uint8_t len, uint8_t* consumed)
+static const struct at_func one_len_at_funcs[] = {
+    ATFUNC_ENTRY_WITH_HANDLER(ABS, m_abs)
+
+    ATFUNC_LAST_ENTRY
+    };
+
+static const struct at_func* find_symbol(const struct at_func* functions, const uint8_t* expression, uint8_t len, uint8_t* consumed)
 {
     uint8_t i;
     uint8_t pos;
@@ -134,8 +159,9 @@ static uint8_t find_symbol(const struct at_func* functions, const uint8_t* expre
             break;
     }
 
-    *consumed = (strlen(functions[i].name) + 1);
-    return functions[i].value;
+    if (functions[i].value != ATFUNC_UNKNOWN)
+        *consumed = (strlen(functions[i].name) + 1);
+    return &(functions[i]);
 }
 
 static uint8_t find_closing_paren(const uint8_t* expression, uint8_t len, uint8_t* closing_paren_index)
@@ -163,38 +189,34 @@ static uint8_t find_closing_paren(const uint8_t* expression, uint8_t len, uint8_
 static uint8_t e_symbols_to_at(const uint8_t* expression, uint8_t len, struct number_t* result, uint8_t* consumed)
 {
     uint8_t rc = EVALUATE_OK;
-    uint8_t atfunc;
+    const struct at_func* atfunc;
     uint8_t closing_paren_index;
 
     *consumed = 0;
     atfunc = find_symbol(zero_len_at_funcs, expression, len, consumed);
-    switch (atfunc)
+    if (atfunc->handler != NULL)
     {
-        case ATFUNC_PI:
-            // !!! TODO Should constants be a simpler process?
-            e_evaluate("3.1415926536", 12, result);
-            break;
-        case ATFUNC_ABS:
-            rc = find_closing_paren(expression + *consumed, len - *consumed, &closing_paren_index);
-            if (rc != EVALUATE_OK)
-                return rc;
-            // Start past the open paren, end before the close paren
-            rc = e_evaluate(expression + *consumed + 1, closing_paren_index - 1, result);
-            if (rc != EVALUATE_OK)
-                return rc;
-            m_abs(result, result);
-            *consumed += (closing_paren_index + 1);
-            break;
-        case ATFUNC_NA:
-            result->type = NUMBER_TYPE_NA;
-            break;
-        case ATFUNC_ERROR:
-            result->type = NUMBER_TYPE_ERROR;
-            break;
-        default:
-            rc = EVALUATE_BAD_AT_SEQUENCE;
-            break;
+        atfunc->handler(NULL, result);
+        return rc;
     }
+
+    atfunc = find_symbol(one_len_at_funcs, expression, len, consumed);
+    if (atfunc->handler != NULL)
+    {
+        rc = find_closing_paren(expression + *consumed, len - *consumed, &closing_paren_index);
+        if (rc != EVALUATE_OK)
+            return rc;
+        // Start past the open paren, end before the close paren
+        rc = e_evaluate(expression + *consumed + 1, closing_paren_index - 1, result);
+        if (rc != EVALUATE_OK)
+            return rc;
+        atfunc->handler(result, result);
+        *consumed += (closing_paren_index + 1);
+
+        return rc;
+    }
+
+    rc = EVALUATE_BAD_AT_SEQUENCE;
     return rc;
 }
 
