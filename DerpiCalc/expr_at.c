@@ -46,12 +46,12 @@ static uint8_t range_start(struct range_iter *iter, uint16_t start, uint16_t end
     return EVALUATE_OK;
 }
 
-static uint8_t range_next(struct range_iter *iter)
+static void range_next(struct range_iter *iter)
 {
     if (iter->first)
     {
         iter->first = 0;
-        return EVALUATE_OK;
+        return;
     }
 
     if (iter->col1 != iter->col2)
@@ -61,7 +61,7 @@ static uint8_t range_next(struct range_iter *iter)
 
     iter->last = (iter->current_col == iter->col2) && (iter->current_row == iter->row2);
 
-    return EVALUATE_OK;
+    return;
 }
 
 struct comma_iter
@@ -181,14 +181,14 @@ static uint8_t maybe_parse_range(const uint8_t* buffer, uint8_t len, struct rang
     return range_start(iter, cellref_start, cellref_end);
 }
 
-static uint8_t handle_sum(const uint8_t* buffer, uint8_t len, struct number_t* result)
+typedef uint8_t (*number_func)(void* state, const struct number_t* number);
+
+static uint8_t number_iter(const uint8_t* buffer, uint8_t len, const void* state, number_func func)
 {
     uint8_t rc = EVALUATE_OK;
     struct comma_iter c_iter;
     struct range_iter r_iter;
     struct number_t eval_result;
-
-    m_int_to_number(0, result);
 
     comma_start(&c_iter, buffer, len);
     do
@@ -199,26 +199,45 @@ static uint8_t handle_sum(const uint8_t* buffer, uint8_t len, struct number_t* r
         {
             do
             {
-                rc = range_next(&r_iter);
-                if (rc != EVALUATE_OK)
-                    break;
+                range_next(&r_iter);
                 rc = c_get_cell_number(r_iter.current_col, r_iter.current_row, &eval_result);
                 if (rc != EVALUATE_OK)
-                    break;
-                m_add(result, &eval_result, result);
+                    return rc;
+                rc = func(state, &eval_result);
+                if (rc != EVALUATE_OK)
+                    return rc;
             } while (!r_iter.last);
         }
         else if (rc == EVALUATE_BAD_RANGE)
         {
             rc = e_evaluate(c_iter.buffer + c_iter.pos, c_iter.len, &eval_result);
             if (rc != EVALUATE_OK)
-                break;
+                return rc;
 
-            m_add(result, &eval_result, result);
+            rc = func(state, &eval_result);
+            if (rc != EVALUATE_OK)
+                return rc;
         }
+        else
+            return rc;
     } while (!c_iter.last);
 
     return rc;
+}
+
+static uint8_t sum_func(void* state, const struct number_t* number)
+{
+    struct number_t* result = (struct number_t*) state;
+
+    m_add(result, number, result);
+
+    return EVALUATE_OK;
+}
+
+static uint8_t handle_sum(const uint8_t* buffer, uint8_t len, struct number_t* result)
+{
+    m_int_to_number(0, result);
+    return number_iter(buffer, len, result, sum_func);
 }
 
 struct at_func
