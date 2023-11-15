@@ -30,6 +30,62 @@ static operator_func get_operator_func(uint8_t operator, uint8_t* rc)
     }
 }
 
+struct range_iter
+{
+    uint8_t col1;
+    uint8_t col2;
+    uint8_t row1;
+    uint8_t row2;
+    uint8_t first;
+
+    int8_t direction;
+
+    // Permissible for caller to inspect
+    uint8_t current_col;
+    uint8_t current_row;
+    uint8_t last;
+};
+
+static uint8_t range_start(struct range_iter *iter, uint16_t start, uint16_t end)
+{
+    iter->col1 = CELLREF_GET_COL(start);
+    iter->row1 = CELLREF_GET_ROW(start);
+    iter->col2 = CELLREF_GET_COL(end);
+    iter->row2 = CELLREF_GET_ROW(end);
+
+    if ((iter->col1 != iter->col2) && (iter->row1 != iter->row2))
+        return EVALUATE_BAD_RANGE;
+    else if (iter->col1 != iter->col2)
+        iter->direction = (iter->col1 < iter->col2) ? +1 : -1;
+    else
+        iter->direction = (iter->row1 < iter->row2) ? +1 : -1;
+
+    iter->current_col = iter->col1;
+    iter->current_row = iter->row1;
+    iter->last = (iter->current_col == iter->col2) && (iter->current_row == iter->row2);
+    iter->first = 1;
+
+    return EVALUATE_OK;
+}
+
+static uint8_t range_next(struct range_iter *iter)
+{
+    if (iter->first)
+    {
+        iter->first = 0;
+        return EVALUATE_OK;
+    }
+
+    if (iter->col1 != iter->col2)
+        iter->current_col += iter->direction;
+    else
+        iter->current_row += iter->direction;
+
+    iter->last = (iter->current_col == iter->col2) && (iter->current_row == iter->row2);
+
+    return EVALUATE_OK;
+}
+
 struct comma_iter
 {
     const uint8_t* buffer;
@@ -172,10 +228,46 @@ static uint8_t handle_abs(const uint8_t* buffer, uint8_t len, struct number_t* r
     return EVALUATE_OK;
 }
 
+static uint8_t maybe_parse_range(const uint8_t* buffer, uint8_t len, struct range_iter* iter)
+{
+    uint8_t rc;
+    uint8_t total_consumed = 0;
+    uint8_t consumed;
+    uint8_t i;
+    uint16_t cellref_start;
+    uint16_t cellref_end;
+
+    rc = m_symbols_to_cellref(buffer + total_consumed, len - total_consumed, &consumed, &cellref_start);
+    if (rc != EVALUATE_OK)
+        return EVALUATE_BAD_RANGE;
+    total_consumed += consumed;
+
+    if ((len - total_consumed) > 3)
+    {
+        for (i = 0;i < 3;++i)
+            if (buffer[total_consumed + i] != '.')
+                return EVALUATE_BAD_RANGE;
+
+        total_consumed += 3;
+    }
+    else
+    {
+        return EVALUATE_BAD_RANGE;
+    }
+
+    rc = m_symbols_to_cellref(buffer + total_consumed, len - total_consumed, &consumed, &cellref_end);
+    if (rc != EVALUATE_OK)
+        return EVALUATE_BAD_RANGE;
+    total_consumed += consumed;
+
+    return range_start(iter, cellref_start, cellref_end);
+}
+
 static uint8_t handle_sum(const uint8_t* buffer, uint8_t len, struct number_t* result)
 {
     uint8_t rc = EVALUATE_OK;
     struct comma_iter c_iter;
+    struct range_iter r_iter;
     struct number_t eval_result;
 
     m_int_to_number(0, result);
@@ -184,11 +276,28 @@ static uint8_t handle_sum(const uint8_t* buffer, uint8_t len, struct number_t* r
     do
     {
         comma_next(&c_iter);
-        rc = e_evaluate(c_iter.buffer + c_iter.pos, c_iter.len, &eval_result);
-        if (rc != EVALUATE_OK)
-            break;
+        rc = maybe_parse_range(c_iter.buffer + c_iter.pos, c_iter.len, &r_iter);
+        if (rc == EVALUATE_OK)
+        {
+            do
+            {
+                rc = range_next(&r_iter);
+                if (rc != EVALUATE_OK)
+                    break;
+                rc = c_get_cell_number(r_iter.current_col, r_iter.current_row, &eval_result);
+                if (rc != EVALUATE_OK)
+                    break;
+                m_add(result, &eval_result, result);
+            } while (!r_iter.last);
+        }
+        else if (rc == EVALUATE_BAD_RANGE)
+        {
+            rc = e_evaluate(c_iter.buffer + c_iter.pos, c_iter.len, &eval_result);
+            if (rc != EVALUATE_OK)
+                break;
 
-        m_add(result, &eval_result, result);
+            m_add(result, &eval_result, result);
+        }
     } while (!c_iter.last);
 
     return rc;
