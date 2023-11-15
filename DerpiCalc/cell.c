@@ -149,6 +149,7 @@ void c_set_cell_label(uint8_t col, uint8_t row, const uint8_t* label, uint8_t le
 
     cell = find_cell(col, row, 1);
     cell->type = CELL_TYPE_LABEL;
+    cell->number.type = NUMBER_TYPE_UNINITIALIZED;
     cell_set_contents(cell, label, len);
     cell_update_value(cell);
 }
@@ -180,6 +181,7 @@ void c_set_cell_repeating_label(uint8_t col, uint8_t row, const uint8_t* label, 
 
     cell = find_cell(col, row, 1);
     cell->type = CELL_TYPE_REPEATING;
+    cell->number.type = NUMBER_TYPE_UNINITIALIZED;
     cell_set_contents(cell, label, len);
     cell_update_value(cell);
 }
@@ -191,6 +193,7 @@ void c_blank_cell(uint8_t col, uint8_t row)
     if (cell != NULL)
     {
         cell->type = CELL_TYPE_BLANK;
+        cell->number.type = NUMBER_TYPE_UNINITIALIZED;
         cell_clear_contents(cell);
         cell_update_value(cell);
     }
