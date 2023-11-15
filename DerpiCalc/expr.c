@@ -30,6 +30,58 @@ static operator_func get_operator_func(uint8_t operator, uint8_t* rc)
     }
 }
 
+struct comma_iter
+{
+    const uint8_t* buffer;
+    uint8_t buffer_len;
+    uint8_t first;
+
+    uint8_t pos;
+    uint8_t len;
+    uint8_t last;
+};
+
+static void comma_next(struct comma_iter* iter)
+{
+    uint8_t i;
+    uint8_t paren_count;
+
+    if (!iter->first)
+    {
+        iter->pos += (iter->len + 1);
+    }
+    else
+        iter->first = 0;
+
+    paren_count = 0;
+
+    for (i = iter->pos;i < iter->buffer_len;++i)
+    {
+        if (iter->buffer[i] == '(')
+            ++paren_count;
+        else if (iter->buffer[i] == ')')
+            --paren_count;
+        else if ((iter->buffer[i] == ',') && (paren_count == 0))
+        {
+            iter->len = i - iter->pos;
+            return;
+        }
+    }
+
+    iter->last = 1;
+    iter->len = iter->buffer_len - iter->pos;
+}
+
+static void comma_start(struct comma_iter* iter, const uint8_t* buffer, uint8_t len)
+{
+    iter->buffer = buffer;
+    iter->buffer_len = len;
+    iter->first = 1;
+    iter->pos = 0;
+    iter->len = 0;
+    iter->last = 0;
+}
+
 #define PARSING_COLUMN_1 0
 #define PARSING_COLUMN_2 1
 #define PARSING_ROW 2
@@ -92,51 +144,75 @@ static uint8_t m_symbols_to_cellref(const uint8_t* s, uint8_t len, uint8_t* cons
 
 // These are all zero-length @ functions and ignore their first parameter
 #pragma warn (unused-param, push, off)
-static void handle_pi(const struct number_t* a, struct number_t* result)
+static uint8_t handle_pi(const uint8_t* buffer, uint8_t len, struct number_t* result)
 {
-    e_evaluate("3.1415926536", 12, result);
+    return e_evaluate("3.1415926536", 12, result);
 }
 
-static void handle_na(const struct number_t* a, struct number_t* result)
+static uint8_t handle_na(const uint8_t* buffer, uint8_t len, struct number_t* result)
 {
     result->type = NUMBER_TYPE_NA;
+    return EVALUATE_OK;
 }
 
-static void handle_error(const struct number_t* a, struct number_t* result)
+static uint8_t handle_error(const uint8_t* buffer, uint8_t len, struct number_t* result)
 {
     result->type = NUMBER_TYPE_ERROR;
+    return EVALUATE_OK;
 }
 #pragma warn (unused-param, pop)
 
-#define ATFUNC_UNKNOWN 0
-#define ATFUNC_PI 1
-#define ATFUNC_ABS 2
-#define ATFUNC_ERROR 3
-#define ATFUNC_NA 4
+static uint8_t handle_abs(const uint8_t* buffer, uint8_t len, struct number_t* result)
+{
+    uint8_t rc;
+    rc = e_evaluate(buffer, len, result);
+    if (rc != EVALUATE_OK)
+        return rc;
+    m_abs(result, result);
+    return EVALUATE_OK;
+}
+
+static uint8_t handle_sum(const uint8_t* buffer, uint8_t len, struct number_t* result)
+{
+    uint8_t rc = EVALUATE_OK;
+    struct comma_iter c_iter;
+    struct number_t eval_result;
+
+    m_int_to_number(0, result);
+
+    comma_start(&c_iter, buffer, len);
+    do
+    {
+        comma_next(&c_iter);
+        rc = e_evaluate(c_iter.buffer + c_iter.pos, c_iter.len, &eval_result);
+        if (rc != EVALUATE_OK)
+            break;
+
+        m_add(result, &eval_result, result);
+    } while (!c_iter.last);
+
+    return rc;
+}
 
 struct at_func
 {
     const char* name;
-    uint8_t value;
-    void (*handler)(const struct number_t* a, struct number_t* result);
+    uint8_t (*handler)(const uint8_t* buffer, uint8_t len, struct number_t* result);
 };
 
-#define ATFUNC_ENTRY(X) { #X, ATFUNC_##X, NULL },
-#define ATFUNC_ENTRY_WITH_HANDLER(X, F) { #X, ATFUNC_##X, F },
-#define ATFUNC_LAST_ENTRY { "", ATFUNC_UNKNOWN }
-
 static const struct at_func zero_len_at_funcs[] = {
-    ATFUNC_ENTRY_WITH_HANDLER(PI, handle_pi)
-    ATFUNC_ENTRY_WITH_HANDLER(ERROR, handle_error)
-    ATFUNC_ENTRY_WITH_HANDLER(NA, handle_na)
+    { "PI", handle_pi },
+    { "ERROR", handle_error },
+    { "NA", handle_na },
 
-    ATFUNC_LAST_ENTRY
+    { NULL, NULL }
     };
 
-static const struct at_func one_len_at_funcs[] = {
-    ATFUNC_ENTRY_WITH_HANDLER(ABS, m_abs)
+static const struct at_func nonzero_len_at_funcs[] = {
+    { "ABS", handle_abs },
+    { "SUM", handle_sum },
 
-    ATFUNC_LAST_ENTRY
+    { NULL, NULL }
     };
 
 static const struct at_func* find_symbol(const struct at_func* functions, const uint8_t* expression, uint8_t len, uint8_t* consumed)
@@ -148,7 +224,7 @@ static const struct at_func* find_symbol(const struct at_func* functions, const 
     ++expression;
     --len;
 
-    for (i = 0;functions[i].value != ATFUNC_UNKNOWN;++i)
+    for (i = 0;functions[i].name != NULL;++i)
     {
         for (pos = 0;
             (functions[i].name[pos]) && (pos < len) &&
@@ -159,7 +235,7 @@ static const struct at_func* find_symbol(const struct at_func* functions, const 
             break;
     }
 
-    if (functions[i].value != ATFUNC_UNKNOWN)
+    if (functions[i].name != NULL)
         *consumed = (strlen(functions[i].name) + 1);
     return &(functions[i]);
 }
@@ -196,26 +272,23 @@ static uint8_t e_symbols_to_at(const uint8_t* expression, uint8_t len, struct nu
     atfunc = find_symbol(zero_len_at_funcs, expression, len, consumed);
     if (atfunc->handler != NULL)
     {
-        atfunc->handler(NULL, result);
-        return rc;
+        return atfunc->handler(NULL, 0, result);
     }
 
-    atfunc = find_symbol(one_len_at_funcs, expression, len, consumed);
+    atfunc = find_symbol(nonzero_len_at_funcs, expression, len, consumed);
     if (atfunc->handler != NULL)
     {
         rc = find_closing_paren(expression + *consumed, len - *consumed, &closing_paren_index);
         if (rc != EVALUATE_OK)
             return rc;
         // Start past the open paren, end before the close paren
-        rc = e_evaluate(expression + *consumed + 1, closing_paren_index - 1, result);
+        rc = atfunc->handler(expression + *consumed + 1, closing_paren_index - 1, result);
         if (rc != EVALUATE_OK)
             return rc;
-        atfunc->handler(result, result);
         *consumed += (closing_paren_index + 1);
 
         return rc;
     }
-
     rc = EVALUATE_BAD_AT_SEQUENCE;
     return rc;
 }
