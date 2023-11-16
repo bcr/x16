@@ -206,3 +206,10 @@ void m_atan(const struct number_t* a, struct number_t* result)
     asm("JSR $FE48"); // ATN -- FAC = ATAN(FAC)
     get_fac(result);
 }
+
+void m_log(const struct number_t* a, struct number_t* result)
+{
+    setup_fac(a);
+    asm("JSR $FE2A"); // LOG -- FAC = LOG(FAC) (natural log)
+    get_fac(result);
+}

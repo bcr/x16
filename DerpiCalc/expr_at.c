@@ -341,6 +341,11 @@ static uint8_t handle_atan(const uint8_t* buffer, uint8_t len, struct number_t* 
     return handle_single(buffer, len, result, m_atan);
 }
 
+static uint8_t handle_ln(const uint8_t* buffer, uint8_t len, struct number_t* result)
+{
+    return handle_single(buffer, len, result, m_log);
+}
+
 struct at_func
 {
     const char* name;
@@ -365,6 +370,7 @@ static const struct at_func nonzero_len_at_funcs[] = {
     { "COS", handle_cos },
     { "TAN", handle_tan },
     { "ATAN", handle_atan },
+    { "LN", handle_ln },
 
     { NULL, NULL }
     };
