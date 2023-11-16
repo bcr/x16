@@ -192,3 +192,10 @@ void m_cos(const struct number_t* a, struct number_t* result)
     asm("JSR $FE3F"); // COS -- FAC = COS(FAC)
     get_fac(result);
 }
+
+void m_tan(const struct number_t* a, struct number_t* result)
+{
+    setup_fac(a);
+    asm("JSR $FE45"); // TAN -- FAC = TAN(FAC)
+    get_fac(result);
+}

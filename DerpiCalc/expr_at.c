@@ -331,6 +331,11 @@ static uint8_t handle_cos(const uint8_t* buffer, uint8_t len, struct number_t* r
     return handle_single(buffer, len, result, m_cos);
 }
 
+static uint8_t handle_tan(const uint8_t* buffer, uint8_t len, struct number_t* result)
+{
+    return handle_single(buffer, len, result, m_tan);
+}
+
 struct at_func
 {
     const char* name;
@@ -353,6 +358,7 @@ static const struct at_func nonzero_len_at_funcs[] = {
     { "AVERAGE", handle_average },
     { "SIN", handle_sin },
     { "COS", handle_cos },
+    { "TAN", handle_tan },
 
     { NULL, NULL }
     };
