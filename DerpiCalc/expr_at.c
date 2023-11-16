@@ -361,6 +361,24 @@ static uint8_t handle_int(const uint8_t* buffer, uint8_t len, struct number_t* r
     return handle_single(buffer, len, result, m_int);
 }
 
+static uint8_t handle_log10(const uint8_t* buffer, uint8_t len, struct number_t* result)
+{
+    uint8_t rc;
+    struct number_t ln10;
+
+    rc = e_evaluate(buffer, len, result);
+    if (rc != EVALUATE_OK)
+        return rc;
+
+    // log10(x) = ln(x) / ln(10)
+    m_int_to_number(10, &ln10); // !!! TODO: Constant, should we keep it?
+    m_log(&ln10, &ln10);
+    m_log(result, result);
+    m_divide(result, &ln10, result);
+
+    return EVALUATE_OK;
+}
+
 struct at_func
 {
     const char* name;
@@ -389,6 +407,7 @@ static const struct at_func nonzero_len_at_funcs[] = {
     { "SQRT", handle_sqrt },
     { "EXP", handle_exp },
     { "INT", handle_int },
+    { "LOG10", handle_log10 },
 
     { NULL, NULL }
     };
@@ -406,7 +425,7 @@ static const struct at_func* find_symbol(const struct at_func* functions, const 
     {
         for (pos = 0;
             (functions[i].name[pos]) && (pos < len) &&
-            ((functions[i].name[pos] - 'A') == (expression[pos] - SYMBOL_LATIN_CAPITAL_LETTER_A));
+            (util_c_char_to_symbol(functions[i].name[pos]) == expression[pos]);
             ++pos)
             ;
         if (functions[i].name[pos] == 0)
