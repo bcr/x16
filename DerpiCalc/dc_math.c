@@ -227,3 +227,10 @@ void m_exp(const struct number_t* a, struct number_t* result)
     asm("JSR $FE3C"); // EXP -- FAC = EXP(FAC) (exponent)
     get_fac(result);
 }
+
+void m_int(const struct number_t* a, struct number_t* result)
+{
+    setup_fac(a);
+    asm("JSR $FE2D"); // INT -- FAC = INT(FAC) (int truncate)
+    get_fac(result);
+}

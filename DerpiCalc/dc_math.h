@@ -32,5 +32,6 @@ void m_atan(const struct number_t* a, struct number_t* result);
 void m_log(const struct number_t* a, struct number_t* result);
 void m_sqr(const struct number_t* a, struct number_t* result);
 void m_exp(const struct number_t* a, struct number_t* result);
+void m_int(const struct number_t* a, struct number_t* result);
 
 #endif /* DC_MATH_H */

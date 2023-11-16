@@ -356,6 +356,11 @@ static uint8_t handle_exp(const uint8_t* buffer, uint8_t len, struct number_t* r
     return handle_single(buffer, len, result, m_exp);
 }
 
+static uint8_t handle_int(const uint8_t* buffer, uint8_t len, struct number_t* result)
+{
+    return handle_single(buffer, len, result, m_int);
+}
+
 struct at_func
 {
     const char* name;
@@ -383,6 +388,7 @@ static const struct at_func nonzero_len_at_funcs[] = {
     { "LN", handle_ln },
     { "SQRT", handle_sqrt },
     { "EXP", handle_exp },
+    { "INT", handle_int },
 
     { NULL, NULL }
     };
