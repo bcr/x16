@@ -165,3 +165,16 @@ void m_abs(const struct number_t* a, struct number_t* result)
     asm("JSR $FE4E"); // ABS -- FAC = ABS(FAC)
     get_fac(result);
 }
+
+int8_t m_compare(const struct number_t* a, const struct number_t* b)
+{
+    setup_fac(a);
+    temp_hi = ((uint16_t) b->number) >> 8;
+    temp_lo = ((uint16_t) b->number) & 0x0ff;
+    asm("lda %v", temp_lo);
+    asm("ldy %v", temp_hi);
+    asm("JSR $FE54"); // FCOMP -- Compare
+    asm("sta %v", temp_lo);
+
+    return temp_lo;
+}

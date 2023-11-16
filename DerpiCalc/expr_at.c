@@ -240,6 +240,31 @@ static uint8_t handle_sum(const uint8_t* buffer, uint8_t len, struct number_t* r
     return number_iter(buffer, len, result, sum_func);
 }
 
+struct max_state
+{
+    uint8_t first;
+    struct number_t* result;
+};
+
+static uint8_t max_func(void* state, const struct number_t* number)
+{
+    struct max_state* local_state = state;
+
+    if ((local_state->first) || (m_compare(number, local_state->result) > 0))
+        memcpy(local_state->result, number, sizeof(struct number_t));
+    local_state->first = 0;
+
+    return EVALUATE_OK;
+}
+
+static uint8_t handle_max(const uint8_t* buffer, uint8_t len, struct number_t* result)
+{
+    struct max_state state;
+    state.first = 1;
+    state.result = result;
+    return number_iter(buffer, len, &state, max_func);
+}
+
 struct at_func
 {
     const char* name;
@@ -257,6 +282,7 @@ static const struct at_func zero_len_at_funcs[] = {
 static const struct at_func nonzero_len_at_funcs[] = {
     { "ABS", handle_abs },
     { "SUM", handle_sum },
+    { "MAX", handle_max },
 
     { NULL, NULL }
     };
