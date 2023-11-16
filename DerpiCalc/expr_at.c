@@ -326,6 +326,11 @@ static uint8_t handle_sin(const uint8_t* buffer, uint8_t len, struct number_t* r
     return handle_single(buffer, len, result, m_sin);
 }
 
+static uint8_t handle_cos(const uint8_t* buffer, uint8_t len, struct number_t* result)
+{
+    return handle_single(buffer, len, result, m_cos);
+}
+
 struct at_func
 {
     const char* name;
@@ -347,6 +352,7 @@ static const struct at_func nonzero_len_at_funcs[] = {
     { "MIN", handle_min },
     { "AVERAGE", handle_average },
     { "SIN", handle_sin },
+    { "COS", handle_cos },
 
     { NULL, NULL }
     };

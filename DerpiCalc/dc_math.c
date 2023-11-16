@@ -185,3 +185,10 @@ void m_sin(const struct number_t* a, struct number_t* result)
     asm("JSR $FE42"); // SIN -- FAC = SIN(FAC)
     get_fac(result);
 }
+
+void m_cos(const struct number_t* a, struct number_t* result)
+{
+    setup_fac(a);
+    asm("JSR $FE3F"); // COS -- FAC = COS(FAC)
+    get_fac(result);
+}
