@@ -284,6 +284,38 @@ static uint8_t handle_min(const uint8_t* buffer, uint8_t len, struct number_t* r
     return number_iter(buffer, len, &state, min_func);
 }
 
+struct average_state
+{
+    int16_t count;
+    struct number_t* result;
+};
+
+static uint8_t average_func(void* state, const struct number_t* number)
+{
+    struct average_state* local_state = state;
+
+    m_add(local_state->result, number, local_state->result);
+    local_state->count++;
+
+    return EVALUATE_OK;
+}
+
+static uint8_t handle_average(const uint8_t* buffer, uint8_t len, struct number_t* result)
+{
+    struct average_state state;
+    struct number_t divisor;
+
+    m_int_to_number(0, result);
+    state.count = 0;
+    state.result = result;
+
+    number_iter(buffer, len, &state, average_func);
+    m_int_to_number(state.count, &divisor);
+    m_divide(state.result, &divisor, result);
+
+    return EVALUATE_OK;
+}
+
 struct at_func
 {
     const char* name;
@@ -303,6 +335,7 @@ static const struct at_func nonzero_len_at_funcs[] = {
     { "SUM", handle_sum },
     { "MAX", handle_max },
     { "MIN", handle_min },
+    { "AVERAGE", handle_average },
 
     { NULL, NULL }
     };
