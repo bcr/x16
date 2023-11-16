@@ -213,3 +213,10 @@ void m_log(const struct number_t* a, struct number_t* result)
     asm("JSR $FE2A"); // LOG -- FAC = LOG(FAC) (natural log)
     get_fac(result);
 }
+
+void m_sqr(const struct number_t* a, struct number_t* result)
+{
+    setup_fac(a);
+    asm("JSR $FE30"); // SQR -- FAC = SQR(FAC) (square root)
+    get_fac(result);
+}
