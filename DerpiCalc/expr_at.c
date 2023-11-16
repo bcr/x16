@@ -240,7 +240,7 @@ static uint8_t handle_sum(const uint8_t* buffer, uint8_t len, struct number_t* r
     return number_iter(buffer, len, result, sum_func);
 }
 
-struct max_state
+struct minmax_state
 {
     uint8_t first;
     struct number_t* result;
@@ -248,7 +248,7 @@ struct max_state
 
 static uint8_t max_func(void* state, const struct number_t* number)
 {
-    struct max_state* local_state = state;
+    struct minmax_state* local_state = state;
 
     if ((local_state->first) || (m_compare(number, local_state->result) > 0))
         memcpy(local_state->result, number, sizeof(struct number_t));
@@ -259,7 +259,7 @@ static uint8_t max_func(void* state, const struct number_t* number)
 
 static uint8_t handle_max(const uint8_t* buffer, uint8_t len, struct number_t* result)
 {
-    struct max_state state;
+    struct minmax_state state;
     state.first = 1;
     state.result = result;
     return number_iter(buffer, len, &state, max_func);
@@ -267,7 +267,7 @@ static uint8_t handle_max(const uint8_t* buffer, uint8_t len, struct number_t* r
 
 static uint8_t min_func(void* state, const struct number_t* number)
 {
-    struct max_state* local_state = state;
+    struct minmax_state* local_state = state;
 
     if ((local_state->first) || (m_compare(number, local_state->result) < 0))
         memcpy(local_state->result, number, sizeof(struct number_t));
@@ -278,7 +278,7 @@ static uint8_t min_func(void* state, const struct number_t* number)
 
 static uint8_t handle_min(const uint8_t* buffer, uint8_t len, struct number_t* result)
 {
-    struct max_state state;
+    struct minmax_state state;
     state.first = 1;
     state.result = result;
     return number_iter(buffer, len, &state, min_func);
