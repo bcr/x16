@@ -379,6 +379,31 @@ static uint8_t handle_log10(const uint8_t* buffer, uint8_t len, struct number_t*
     return EVALUATE_OK;
 }
 
+static uint8_t handle_asin(const uint8_t* buffer, uint8_t len, struct number_t* result)
+{
+    uint8_t rc;
+    struct number_t one;
+    struct number_t x;
+
+    rc = e_evaluate(buffer, len, result);
+    if (rc != EVALUATE_OK)
+        return rc;
+
+    memcpy(&x, result, sizeof(struct number_t));
+    m_int_to_number(1, &one); // !!! TODO: Constant?
+
+    // If I can compute sin cos tan and atan can I compute asin?
+    // arcsin(x) = arctan(x / √(1 - x^2))
+
+    m_multiply(&x, &x, result); // result = x^2
+    m_subtract(&one, result, result); // result = 1 - (x^2)
+    m_sqr(result, result); // result = √(1 - x^2)
+    m_divide(&x, result, result); // result = x / √(1 - x^2)
+    m_atan(result, result); // result = arctan(x / √(1 - x^2))
+
+    return EVALUATE_OK;
+}
+
 struct at_func
 {
     const char* name;
@@ -408,6 +433,7 @@ static const struct at_func nonzero_len_at_funcs[] = {
     { "EXP", handle_exp },
     { "INT", handle_int },
     { "LOG10", handle_log10 },
+    { "ASIN", handle_asin },
 
     { NULL, NULL }
     };
