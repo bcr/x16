@@ -178,3 +178,10 @@ int8_t m_compare(const struct number_t* a, const struct number_t* b)
 
     return temp_lo;
 }
+
+void m_sin(const struct number_t* a, struct number_t* result)
+{
+    setup_fac(a);
+    asm("JSR $FE42"); // SIN -- FAC = SIN(FAC)
+    get_fac(result);
+}

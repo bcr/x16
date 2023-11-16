@@ -136,14 +136,19 @@ static uint8_t handle_error(const uint8_t* buffer, uint8_t len, struct number_t*
 }
 #pragma warn (unused-param, pop)
 
-static uint8_t handle_abs(const uint8_t* buffer, uint8_t len, struct number_t* result)
+static uint8_t handle_single(const uint8_t* buffer, uint8_t len, struct number_t* result, void (*func)(const struct number_t* a, struct number_t* result))
 {
     uint8_t rc;
     rc = e_evaluate(buffer, len, result);
     if (rc != EVALUATE_OK)
         return rc;
-    m_abs(result, result);
+    func(result, result);
     return EVALUATE_OK;
+}
+
+static uint8_t handle_abs(const uint8_t* buffer, uint8_t len, struct number_t* result)
+{
+    return handle_single(buffer, len, result, m_abs);
 }
 
 static uint8_t maybe_parse_range(const uint8_t* buffer, uint8_t len, struct range_iter* iter)
@@ -316,6 +321,11 @@ static uint8_t handle_average(const uint8_t* buffer, uint8_t len, struct number_
     return EVALUATE_OK;
 }
 
+static uint8_t handle_sin(const uint8_t* buffer, uint8_t len, struct number_t* result)
+{
+    return handle_single(buffer, len, result, m_sin);
+}
+
 struct at_func
 {
     const char* name;
@@ -336,6 +346,7 @@ static const struct at_func nonzero_len_at_funcs[] = {
     { "MAX", handle_max },
     { "MIN", handle_min },
     { "AVERAGE", handle_average },
+    { "SIN", handle_sin },
 
     { NULL, NULL }
     };

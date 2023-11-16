@@ -25,5 +25,6 @@ void m_add(const struct number_t* a, const struct number_t* b, struct number_t* 
 void m_subtract(const struct number_t* a, const struct number_t* b, struct number_t* result);
 void m_abs(const struct number_t* a, struct number_t* result);
 int8_t m_compare(const struct number_t* a, const struct number_t* b);
+void m_sin(const struct number_t* a, struct number_t* result);
 
 #endif /* DC_MATH_H */
