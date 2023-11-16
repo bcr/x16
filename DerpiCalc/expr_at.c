@@ -429,6 +429,30 @@ static uint8_t handle_acos(const uint8_t* buffer, uint8_t len, struct number_t* 
     return EVALUATE_OK;
 }
 
+static uint8_t count_func(void* state, const struct number_t* number)
+{
+    uint8_t* result = state;
+
+    // !!! TODO: What about blank cells.
+    // What we really care about is counting nonblank values, not what the
+    // actual values are
+    *result += 1;
+
+    return EVALUATE_OK;
+}
+
+static uint8_t handle_count(const uint8_t* buffer, uint8_t len, struct number_t* result)
+{
+    uint8_t rc;
+    uint8_t count = 0;
+
+    rc = number_iter(buffer, len, &count, count_func);
+    if (rc != EVALUATE_OK)
+        return rc;
+    m_int_to_number(count, result);
+    return EVALUATE_OK;
+}
+
 struct at_func
 {
     const char* name;
@@ -460,6 +484,7 @@ static const struct at_func nonzero_len_at_funcs[] = {
     { "LOG10", handle_log10 },
     { "ASIN", handle_asin },
     { "ACOS", handle_acos },
+    { "COUNT", handle_count },
 
     { NULL, NULL }
     };
