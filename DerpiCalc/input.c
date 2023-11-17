@@ -5,18 +5,18 @@
 #include "ui.h"
 #include "util.h"
 
-static const uint8_t* in_handle_edit_line(const char* prompt, uint8_t key, uint8_t* rc, uint8_t* len)
+static const uint8_t* in_handle_edit_line(const char* prompt, uint8_t* key, uint8_t* rc, uint8_t* len)
 {
     const uint8_t* final_string;
 
     ui_draw_prompt_line(prompt);
     ui_edit_line_start();
-    if (key)
-        ui_edit_line_key(key);
+    if (*key)
+        ui_edit_line_key(*key);
     while (1)
     {
-        key = kb_getch();
-        *rc = ui_edit_line_key(key);
+        *key = kb_getch();
+        *rc = ui_edit_line_key(*key);
         if (*rc)
             break;
     }
@@ -51,17 +51,14 @@ static void in_handle_blank(void)
     key = kb_getch();
     ui_draw_prompt_line("");
 
-    if (key == CH_ENTER)
+    if ((key == CH_ENTER) || (IS_ARROW_KEY(key)))
     {
         cellref = ui_get_active_cell();
         c_blank_cell(CELLREF_GET_COL(cellref), CELLREF_GET_ROW(cellref));
         ui_refresh_active_cell();
+        if (IS_ARROW_KEY(key))
+            ui_arrows(key);
     }
-    // !!! TODO
-    // DOS VisiCalc:
-    // CH_ENTER: Blank it
-    // Arrow keys: Blank it and move active cell
-    // Anything else: Beep and don't blank it
 }
 
 static void in_handle_version(void)
@@ -124,12 +121,15 @@ static void in_handle_label_entry(uint8_t key)
     uint8_t rc;
     uint16_t cellref;
 
-    final_string = in_handle_edit_line("Label", (key == '"') ? 0 : key, &rc, &final_string_length);
+    key = (key == '"') ? 0 : key;
+    final_string = in_handle_edit_line("Label", &key, &rc, &final_string_length);
     if (rc == UI_EDIT_LINE_DONE)
     {
         cellref = ui_get_active_cell();
         c_set_cell_label(CELLREF_GET_COL(cellref), CELLREF_GET_ROW(cellref), final_string, final_string_length);
         ui_refresh_active_cell();
+        if (IS_ARROW_KEY(key))
+            ui_arrows(key);
     }
 }
 
@@ -140,12 +140,14 @@ static void in_handle_value_entry(uint8_t key)
     uint8_t rc;
     uint16_t cellref;
 
-    final_string = in_handle_edit_line("Value", key, &rc, &final_string_length);
+    final_string = in_handle_edit_line("Value", &key, &rc, &final_string_length);
     if (rc == UI_EDIT_LINE_DONE)
     {
         cellref = ui_get_active_cell();
         c_set_cell_value(CELLREF_GET_COL(cellref), CELLREF_GET_ROW(cellref), final_string, final_string_length);
         ui_refresh_active_cell();
+        if (IS_ARROW_KEY(key))
+            ui_arrows(key);
     }
 }
 

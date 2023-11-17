@@ -68,6 +68,10 @@ uint8_t ui_edit_line_key(uint8_t key)
                 return UI_EDIT_LINE_CONTINUE;
             }
             return UI_EDIT_LINE_CANCELED;
+        case CH_CURS_UP:
+        case CH_CURS_DOWN:
+        case CH_CURS_LEFT:
+        case CH_CURS_RIGHT:
         case CH_ENTER:
             return UI_EDIT_LINE_DONE;
     }
