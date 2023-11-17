@@ -61,6 +61,46 @@ static struct cell_t* find_cell(uint8_t col, uint8_t row, uint8_t allocate_if_no
     return *current;
 }
 
+#ifdef SHOW_DUMMY_CELL_VALUES
+const uint8_t* c_get_cell_value(uint8_t col, uint8_t row)
+{
+    uint8_t symbols_output = 0;
+
+    if (col >= 26)
+    {
+        cell_value[symbols_output] = (col / 26 - 1) + SYMBOL_LATIN_CAPITAL_LETTER_A;
+        symbols_output += 1;
+    }
+    cell_value[symbols_output] = col % 26 + SYMBOL_LATIN_CAPITAL_LETTER_A;
+    symbols_output += 1;
+
+    row++;
+    if (row >= 100)
+    {
+        cell_value[symbols_output] = (row / 100) + SYMBOL_DIGIT_ZERO;
+        symbols_output += 1;
+    }
+    if (row >= 10)
+    {
+        cell_value[symbols_output] = (row / 10 % 10) + SYMBOL_DIGIT_ZERO;
+        symbols_output += 1;
+    }
+    cell_value[symbols_output] = (row % 10) + SYMBOL_DIGIT_ZERO;
+    symbols_output += 1;
+    row--;
+
+    for (;symbols_output < (COLUMN_WIDTH - 2);++symbols_output)
+        cell_value[symbols_output] = ' ';
+
+    cell_value[symbols_output] = col;
+    symbols_output += 1;
+
+    cell_value[symbols_output] = row;
+    symbols_output += 1;
+
+    return cell_value;
+}
+#else
 const uint8_t* c_get_cell_value(uint8_t col, uint8_t row)
 {
     struct cell_t* cell;
@@ -68,6 +108,7 @@ const uint8_t* c_get_cell_value(uint8_t col, uint8_t row)
     cell = find_cell(col, row, 0);
     return (cell) ? cell->value : cell_value;
 }
+#endif /* SHOW_DUMMY_CELL_VALUES */
 
 static void cell_update_value(struct cell_t* cell)
 {
