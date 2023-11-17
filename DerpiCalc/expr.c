@@ -31,66 +31,6 @@ static operator_func get_operator_func(uint8_t operator, uint8_t* rc)
     }
 }
 
-#define PARSING_COLUMN_1 0
-#define PARSING_COLUMN_2 1
-#define PARSING_ROW 2
-
-uint8_t m_symbols_to_cellref(const uint8_t* s, uint8_t len, uint8_t* consumed, uint16_t* cellref)
-{
-    uint8_t col = 0;
-    uint8_t row = 0;
-    uint8_t index = 0;
-    uint8_t this_symbol;
-    uint8_t state = PARSING_COLUMN_1;
-    uint8_t spin_again;
-    uint8_t done = 0;
-
-    while (index < len)
-    {
-        this_symbol = s[index];
-        spin_again = 0;
-        switch (state)
-        {
-            case PARSING_COLUMN_1:
-                if ((this_symbol >= SYMBOL_LATIN_CAPITAL_LETTER_A) && (this_symbol <= (SYMBOL_LATIN_CAPITAL_LETTER_A + 25)))
-                {
-                    col = this_symbol - SYMBOL_LATIN_CAPITAL_LETTER_A;
-                    state = PARSING_COLUMN_2;
-                }
-                else
-                {
-                    return EVALUATE_BAD_CELL_REFERENCE;
-                }
-                break;
-            case PARSING_COLUMN_2:
-                if ((this_symbol >= SYMBOL_LATIN_CAPITAL_LETTER_A) && (this_symbol <= (SYMBOL_LATIN_CAPITAL_LETTER_A + 25)))
-                    col = ((col+1) * 26) + (this_symbol - SYMBOL_LATIN_CAPITAL_LETTER_A);
-                else
-                    spin_again = 1;
-                state = PARSING_ROW;
-                break;
-            case PARSING_ROW:
-                if ((this_symbol >= SYMBOL_DIGIT_ZERO) && (this_symbol <= (SYMBOL_DIGIT_ZERO + 9)))
-                {
-                    row *= 10;
-                    row += (this_symbol - SYMBOL_DIGIT_ZERO);
-                }
-                else
-                    done = 1;
-                break;
-        }
-        if (done)
-            break;
-        if (!spin_again)
-            ++index;
-    }
-
-    row -= 1;
-    *consumed = index;
-    *cellref = MAKE_CELLREF(col, row);
-    return EVALUATE_OK;
-}
-
 uint8_t find_closing_paren(const uint8_t* expression, uint8_t len, uint8_t* closing_paren_index)
 {
     uint8_t i;
@@ -120,7 +60,7 @@ static uint8_t e_symbols_to_number(const uint8_t* expression, uint8_t len, struc
 
     if ((expression[0] >= SYMBOL_LATIN_CAPITAL_LETTER_A) && (expression[0] <= (SYMBOL_LATIN_CAPITAL_LETTER_A + 25)))
     {
-        rc = m_symbols_to_cellref(expression, len, consumed, &cellref);
+        rc = util_symbols_to_cellref(expression, len, consumed, &cellref);
         if (rc != EVALUATE_OK)
             return rc;
         rc = c_get_cell_number(CELLREF_GET_COL(cellref), CELLREF_GET_ROW(cellref), result);

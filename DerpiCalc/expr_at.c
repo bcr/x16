@@ -160,7 +160,7 @@ static uint8_t maybe_parse_range(const uint8_t* buffer, uint8_t len, struct rang
     uint16_t cellref_start;
     uint16_t cellref_end;
 
-    rc = m_symbols_to_cellref(buffer + total_consumed, len - total_consumed, &consumed, &cellref_start);
+    rc = util_symbols_to_cellref(buffer + total_consumed, len - total_consumed, &consumed, &cellref_start);
     if (rc != EVALUATE_OK)
         return EVALUATE_BAD_RANGE;
     total_consumed += consumed;
@@ -178,7 +178,7 @@ static uint8_t maybe_parse_range(const uint8_t* buffer, uint8_t len, struct rang
         return EVALUATE_BAD_RANGE;
     }
 
-    rc = m_symbols_to_cellref(buffer + total_consumed, len - total_consumed, &consumed, &cellref_end);
+    rc = util_symbols_to_cellref(buffer + total_consumed, len - total_consumed, &consumed, &cellref_end);
     if (rc != EVALUATE_OK)
         return EVALUATE_BAD_RANGE;
     total_consumed += consumed;

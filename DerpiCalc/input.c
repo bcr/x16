@@ -1,5 +1,8 @@
+#include <stdint.h>
+
 #include <cbm.h>
 
+#include "expr.h"
 #include "input.h"
 #include "keyboard.h"
 #include "ui.h"
@@ -32,8 +35,9 @@ static void in_handle_repeating_label_entry(void)
     uint8_t final_string_length;
     uint8_t rc;
     uint16_t cellref;
+    uint8_t key = 0;
 
-    final_string = in_handle_edit_line("Label: Repeating", 0, &rc, &final_string_length);
+    final_string = in_handle_edit_line("Label: Repeating", &key, &rc, &final_string_length);
     if ((rc == UI_EDIT_LINE_DONE) && (final_string_length > 0))
     {
         cellref = ui_get_active_cell();
@@ -81,6 +85,28 @@ static void in_handle_format(void)
     ui_draw_prompt_line("");
 
     // !!! TODO
+}
+
+static void in_handle_goto_coordinate(void)
+{
+    const uint8_t* final_string;
+    uint8_t consumed;
+    uint8_t final_string_length;
+    uint8_t rc;
+    uint16_t cellref;
+    uint8_t key;
+
+    key = 0;
+
+    final_string = in_handle_edit_line("Go to: Coordinate", &key, &rc, &final_string_length);
+    if ((rc == UI_EDIT_LINE_DONE) && (final_string_length > 0))
+    {
+        rc = util_symbols_to_cellref(final_string, final_string_length, &consumed, &cellref);
+        if (rc == EVALUATE_OK)
+        {
+            ui_set_active_cell(CELLREF_GET_COL(cellref), CELLREF_GET_ROW(cellref));
+        }
+    }
 }
 
 static void in_handle_command(void)
@@ -168,6 +194,9 @@ void in_loop(void)
                 break;
             case '/':
                 in_handle_command();
+                break;
+            case '>':
+                in_handle_goto_coordinate();
                 break;
             default:
                 break;

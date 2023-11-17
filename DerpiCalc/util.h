@@ -20,5 +20,6 @@
 
 uint8_t util_c_char_to_symbol(char c_char);
 uint8_t util_convert_cstr_to_symbol(uint8_t* dest, uint8_t len, const char* c_str);
+uint8_t util_symbols_to_cellref(const uint8_t* s, uint8_t len, uint8_t* consumed, uint16_t* cellref);
 
 #endif /* UTIL_H */

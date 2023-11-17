@@ -313,6 +313,72 @@ void ui_init(void)
 
 #define COMPUTE_BB() { ul_x = CLAMP_SUB(x_offset, COLUMN_WIDTH, CANVAS_WIDTH_CHARS); ul_y = CLAMP_SUB(y_offset, 1, CANVAS_HEIGHT_CHARS); br_x = CLAMP_ADD(x_offset, (COLUMN_WIDTH * NUMBER_CELL_COLUMNS), CANVAS_WIDTH_CHARS); br_y = CLAMP_ADD(y_offset, NUMBER_CELL_ROWS, CANVAS_HEIGHT_CHARS);}
 
+void ui_set_active_cell(uint8_t new_active_cell_column, uint8_t new_active_cell_row)
+{
+    uint8_t ul_x, ul_y, br_x, br_y;
+    uint8_t amount;
+    uint8_t i;
+
+    // If it's in the current window then just adjust the cursor
+    if (((new_active_cell_column >= ul_cell_column) && (new_active_cell_column <= (ul_cell_column + (NUMBER_CELL_COLUMNS - 1)))) &&
+        ((new_active_cell_row >= ul_cell_row) && (new_active_cell_row <= (ul_cell_row + (NUMBER_CELL_ROWS - 1)))))
+        adjust_active_cell(new_active_cell_column - ul_cell_column, new_active_cell_row - ul_cell_row);
+    else
+    {
+        if (new_active_cell_row < ul_cell_row)
+        {
+            amount = ul_cell_row - new_active_cell_row;
+            ul_cell_row -= amount;
+            scroll_row -= amount;
+            for (i = 0;i < amount;++i)
+                y_offset = CLAMP_SUB(y_offset, 1, CANVAS_HEIGHT_CHARS);
+            ui_draw_row_headers();
+        }
+        else if (new_active_cell_row > (ul_cell_row + (NUMBER_CELL_ROWS - 1)))
+        {
+            amount = new_active_cell_row - (ul_cell_row + (NUMBER_CELL_ROWS - 1));
+            ul_cell_row += amount;
+            scroll_row += amount;
+            for (i = 0;i < amount;++i)
+                y_offset = CLAMP_ADD(y_offset, 1, CANVAS_HEIGHT_CHARS);
+            ui_draw_row_headers();
+        }
+
+        if (new_active_cell_column < ul_cell_column)
+        {
+            amount = ul_cell_column - new_active_cell_column;
+            ul_cell_column -= amount;
+            scroll_column -= (COLUMN_WIDTH * amount);
+            for (i = 0;i < amount;++i)
+                x_offset = CLAMP_SUB(x_offset, COLUMN_WIDTH, CANVAS_WIDTH_CHARS);
+            ui_draw_column_headers();
+        }
+        else if (new_active_cell_column > (ul_cell_column + (NUMBER_CELL_COLUMNS - 1)))
+        {
+            amount = new_active_cell_column - (ul_cell_column + (NUMBER_CELL_COLUMNS - 1));
+            ul_cell_column += amount;
+            scroll_column += (COLUMN_WIDTH * amount);
+            for (i = 0;i < amount;++i)
+                x_offset = CLAMP_ADD(x_offset, COLUMN_WIDTH, CANVAS_WIDTH_CHARS);
+            ui_draw_column_headers();
+        }
+
+        ui_update_scroll();
+
+        COMPUTE_BB()
+
+        ui_draw_cells(
+            (ul_cell_column > 0) ? ul_x : x_offset,
+            (ul_cell_row > 0) ? ul_y : y_offset,
+            (ul_cell_column > 0) ? ul_cell_column - 1 : ul_cell_column,
+            ul_cell_column + NUMBER_CELL_COLUMNS,
+            (ul_cell_row > 0) ? ul_cell_row - 1 : ul_cell_row,
+            ul_cell_row + NUMBER_CELL_ROWS
+        );
+        adjust_active_cell(new_active_cell_column - ul_cell_column, new_active_cell_row - ul_cell_row);
+    }
+}
+
 static void ui_scroll(uint8_t key)
 {
     uint8_t ul_x, ul_y, br_x, br_y;
