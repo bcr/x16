@@ -453,6 +453,72 @@ static uint8_t handle_count(const uint8_t* buffer, uint8_t len, struct number_t*
     return EVALUATE_OK;
 }
 
+static uint8_t handle_lookup(const uint8_t* buffer, uint8_t len, struct number_t* result)
+{
+    uint8_t rc = EVALUATE_OK;
+    uint8_t first = 1;
+    struct comma_iter c_iter;
+    struct range_iter r_iter;
+    struct number_t eval_result;
+    uint8_t col;
+    uint8_t row;
+
+    comma_start(&c_iter, buffer, len);
+
+    comma_next(&c_iter);
+    rc = e_evaluate(c_iter.buffer + c_iter.pos, c_iter.len, result);
+    if (rc != EVALUATE_OK)
+        return rc;
+
+    if (c_iter.last)
+        return EVALUATE_BAD_RANGE;
+
+    comma_next(&c_iter);
+    rc = maybe_parse_range(c_iter.buffer + c_iter.pos, c_iter.len, &r_iter);
+    if (rc != EVALUATE_OK)
+        return rc;
+
+    do
+    {
+        range_next(&r_iter);
+        if (r_iter.last && first)   // VisiCalc no like 1 cell lookup tables
+            return EVALUATE_BAD_RANGE;
+
+        rc = c_get_cell_number(r_iter.current_col, r_iter.current_row, &eval_result);
+        if (rc != EVALUATE_OK)
+            return rc;
+
+        if ((m_compare(&eval_result, result) > 0) || (r_iter.last))
+        {
+            // If the first element is greater, NA is the answer
+            if (first)
+            {
+                result->type = NUMBER_TYPE_NA;
+                return EVALUATE_OK;
+            }
+            else
+            {
+                // Find the cell to the right or just below
+                if (r_iter.col1 != r_iter.col2)
+                    row++;
+                else
+                    col++;
+
+                rc = c_get_cell_number(col, row, result);
+                return rc;
+            }
+        }
+        else
+        {
+            col = r_iter.current_col;
+            row = r_iter.current_row;
+            first = 0;
+        }
+    } while (!r_iter.last);
+
+    return rc;
+}
+
 struct at_func
 {
     const char* name;
@@ -485,6 +551,7 @@ static const struct at_func nonzero_len_at_funcs[] = {
     { "ASIN", handle_asin },
     { "ACOS", handle_acos },
     { "COUNT", handle_count },
+    { "LOOKUP", handle_lookup },
 
     { NULL, NULL }
     };
