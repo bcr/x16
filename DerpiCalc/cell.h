@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "dc_math.h"
+
 #define CELL_TYPE_LABEL 0
 #define CELL_TYPE_VALUE 1
 #define CELL_TYPE_REPEATING 2
