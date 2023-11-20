@@ -12,9 +12,14 @@ static void get_fac(struct number_t* result)
 {
     temp_hi = ((uint16_t) result->number) >> 8;
     temp_lo = ((uint16_t) result->number) & 0x0ff;
+
+#if __CC65__
     asm("ldx %v", temp_lo);
     asm("ldy %v", temp_hi);
     asm("JSR $FE66"); // MOVMF -- Stores FAC IN Y/X (result), 5 bytes long
+#else
+    asm("JSR $FE66" :: "x"(temp_lo), "y"(temp_hi)); // MOVMF -- Stores FAC IN Y/X (result), 5 bytes long
+#endif /* __CC65 */
     result->type = NUMBER_TYPE_NORMAL;
 }
 
@@ -26,8 +31,12 @@ static void zero_fac(void)
 static void finlog(int8_t digit)
 {
     temp_lo = digit;
+#if __CC65__
     asm("lda %v", temp_lo);
     asm("JSR $FE90"); // FINLOG -- add accumulator to FAc
+#else
+    asm("JSR $FE90" :: "a"(temp_lo)); // FINLOG -- add accumulator to FAc
+#endif /* __CC65 */
 }
 
 static void mul10(void)
@@ -49,9 +58,13 @@ void m_int_to_number(int16_t i, struct number_t *result)
 {
     temp_hi = i >> 8;
     temp_lo = i & 0x0FF;
+#if __CC65__
     asm("ldy %v", temp_lo);
     asm("lda %v", temp_hi);
     asm("JSR $FE03"); // GIVAYF -- puts A/Y into FAC
+#else
+    asm("JSR $FE03" :: "y"(temp_lo), "a"(temp_hi)); // GIVAYF -- puts A/Y into FAC
+#endif /* __CC65 */
 
     get_fac(result);
 }
@@ -103,10 +116,15 @@ volatile const char* m_number_to_cstr(const struct number_t* n)
 {
     temp_hi = ((uint16_t) n->number) >> 8;
     temp_lo = ((uint16_t) n->number) & 0x0ff;
+#if __CC65__
     asm("lda %v", temp_lo);
     asm("ldy %v", temp_hi);
     asm("JSR $FE63"); // MOVFM -- puts Y/A into FAC
     asm("JSR $FE06"); // FOUT -- Puts ASCIIZ of FAC in $0100
+#else
+    asm("JSR $FE63" :: "a"(temp_lo), "y"(temp_hi)); // MOVFM -- puts Y/A into FAC
+    asm("JSR $FE06"); // FOUT -- Puts ASCIIZ of FAC in $0100
+#endif /* __CC65__ */
 
     return fout_output;
 }
@@ -115,18 +133,26 @@ static void setup_fac(const struct number_t* a)
 {
     temp_hi = ((uint16_t) a->number) >> 8;
     temp_lo = ((uint16_t) a->number) & 0x0ff;
+#if __CC65__
     asm("lda %v", temp_lo);
     asm("ldy %v", temp_hi);
     asm("JSR $FE63"); // MOVFM -- move memory to FAC
+#else
+    asm("JSR $FE63" :: "a"(temp_lo), "y"(temp_hi)); // MOVFM -- move memory to FAC
+#endif /* __CC65__ */
 }
 
 static void setup_fac_arg(const struct number_t* a, const struct number_t* b)
 {
     temp_hi = ((uint16_t) a->number) >> 8;
     temp_lo = ((uint16_t) a->number) & 0x0ff;
+#if __CC65__
     asm("lda %v", temp_lo);
     asm("ldy %v", temp_hi);
     asm("JSR $FE5D"); // ROMUPK -- move memory to ARG
+#else
+    asm("JSR $FE5D" :: "a"(temp_lo), "y"(temp_hi)); // ROMUPK -- move memory to ARG
+#endif /* __CC65__ */
 
     setup_fac(b);
 }
@@ -171,10 +197,14 @@ int8_t m_compare(const struct number_t* a, const struct number_t* b)
     setup_fac(a);
     temp_hi = ((uint16_t) b->number) >> 8;
     temp_lo = ((uint16_t) b->number) & 0x0ff;
+#if __CC65__
     asm("lda %v", temp_lo);
     asm("ldy %v", temp_hi);
     asm("JSR $FE54"); // FCOMP -- Compare
     asm("sta %v", temp_lo);
+#else
+    asm("JSR $FE54" : "=a"(temp_lo) : "a"(temp_lo), "y"(temp_hi)); // FCOMP -- Compare
+#endif /* __CC65__ */
 
     return temp_lo;
 }
