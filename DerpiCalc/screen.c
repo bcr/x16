@@ -39,7 +39,7 @@ void s_init(void)
     s_clear(0, 0);
     s_clear(0, 1);
 
-    VERA.display.video |= 0b00110000;   // Turn on layer 0 and layer 1
+    vera_layer_enable(0b11);    // Turn on layer 0 and layer 1
 }
 
 void s_set_position(uint8_t col, uint8_t row, uint8_t layer)

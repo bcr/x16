@@ -1,6 +1,6 @@
-#include "keyboard.h"
+#include <cbm.h>
 
-static uint8_t keycode;
+#include "keyboard.h"
 
 void kb_init(void)
 {
@@ -8,14 +8,10 @@ void kb_init(void)
 
 uint8_t kb_getch(void)
 {
-    while(1) {
-#if __CC65__
-        asm("jsr $FFE4");
-        asm("sta %v", keycode);
-#else
-    asm volatile ("JSR $FFE4" : "=a"(keycode)::"a","c","v","x","y");
-#endif /* __CC65__ */
+    uint8_t keycode;
 
+    while(1) {
+        keycode = cbm_k_getin();
         if (keycode) {
             return keycode;
         }
