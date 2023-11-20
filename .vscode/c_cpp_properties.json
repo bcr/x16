@@ -1,11 +1,27 @@
 {
     "configurations": [
         {
-            "name": "x16",
+            "name": "x16-cc65",
             "includePath": [
                 "${workspaceFolder}/**",
                 "/opt/homebrew/Cellar/cc65/2.19/share/cc65/include"
             ],
+            "defines": [
+                "__CBM__",
+                "__CX16__",
+                "__CC65__"
+            ]
+        },
+        {
+            "name": "x16-llvm",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "~/llvm-mos/mos-platform/cx16/include",
+                "~/llvm-mos/mos-platform/common/include",
+                "~/llvm-mos/mos-platform/commodore/include",
+                "~/llvm-mos/lib/clang/18/include"
+            ],
+            "compilerPath": "~/llvm-mos/bin/mos-cx16-clang",
             "defines": [
                 "__CBM__",
                 "__CX16__"
