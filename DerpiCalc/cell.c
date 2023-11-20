@@ -249,8 +249,7 @@ uint8_t c_get_cell_number(uint8_t col, uint8_t row, struct number_t* result)
         memcpy(result, &cell->number, sizeof(struct number_t));
         return EVALUATE_OK;
     }
-    // !!! TODO Should zero be a simpler process?
-    e_evaluate((const uint8_t*) "0", 1, result);
+    m_int_to_number(0, result);
     return EVALUATE_OK;
 }
 
