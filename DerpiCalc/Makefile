@@ -1,4 +1,5 @@
 include ../x16cl65.mak
+# include ../llvm.mak
 
 %.prg : %.o
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
