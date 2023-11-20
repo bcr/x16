@@ -250,7 +250,7 @@ uint8_t c_get_cell_number(uint8_t col, uint8_t row, struct number_t* result)
         return EVALUATE_OK;
     }
     // !!! TODO Should zero be a simpler process?
-    e_evaluate("0", 1, result);
+    e_evaluate((const uint8_t*) "0", 1, result);
     return EVALUATE_OK;
 }
 

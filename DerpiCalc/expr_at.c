@@ -120,7 +120,7 @@ static void comma_start(struct comma_iter* iter, const uint8_t* buffer, uint8_t 
 #pragma warn (unused-param, push, off)
 static uint8_t handle_pi(const uint8_t* buffer, uint8_t len, struct number_t* result)
 {
-    return e_evaluate("3.1415926536", 12, result);
+    return e_evaluate((const uint8_t*) "3.1415926536", 12, result);
 }
 
 static uint8_t handle_na(const uint8_t* buffer, uint8_t len, struct number_t* result)
@@ -188,7 +188,7 @@ static uint8_t maybe_parse_range(const uint8_t* buffer, uint8_t len, struct rang
 
 typedef uint8_t (*number_func)(void* state, const struct number_t* number);
 
-static uint8_t number_iter(const uint8_t* buffer, uint8_t len, const void* state, number_func func)
+static uint8_t number_iter(const uint8_t* buffer, uint8_t len, void* state, number_func func)
 {
     uint8_t rc = EVALUATE_OK;
     struct comma_iter c_iter;
