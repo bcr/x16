@@ -20,13 +20,13 @@ static uint8_t symbol_from_key(uint8_t key)
 {
     uint8_t symbol = key;
 
-    if ((symbol >= 'a') && (symbol <= 'z'))
+    if ((symbol >= KEY_LATIN_SMALL_LETTER_A) && (symbol <= KEY_LATIN_SMALL_LETTER_Z))
     {
-        symbol = symbol - 'a' + SYMBOL_LATIN_SMALL_LETTER_A;
+        symbol = symbol - KEY_LATIN_SMALL_LETTER_A + SYMBOL_LATIN_SMALL_LETTER_A;
     }
-    else if ((symbol >= 'A') && (symbol <= 'Z'))
+    else if ((symbol >= KEY_LATIN_CAPITAL_LETTER_A) && (symbol <= KEY_LATIN_CAPITAL_LETTER_Z))
     {
-        symbol = symbol - 'A' + SYMBOL_LATIN_CAPITAL_LETTER_A;
+        symbol = symbol - KEY_LATIN_CAPITAL_LETTER_A + SYMBOL_LATIN_CAPITAL_LETTER_A;
     }
     else if ((symbol >= ' ') && (symbol <= '?'))
     {

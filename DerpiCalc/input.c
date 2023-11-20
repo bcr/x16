@@ -118,19 +118,19 @@ static void in_handle_command(void)
 
     switch (key)
     {
-        case 'b':
-        case 'B':
+        case KEY_LATIN_SMALL_LETTER_B:
+        case KEY_LATIN_CAPITAL_LETTER_B:
             in_handle_blank();
             break;
-        case 'f':
-        case 'F':
+        case KEY_LATIN_SMALL_LETTER_F:
+        case KEY_LATIN_CAPITAL_LETTER_F:
             in_handle_format();
             break;
-        case 'v':
-        case 'V':
+        case KEY_LATIN_SMALL_LETTER_V:
+        case KEY_LATIN_CAPITAL_LETTER_V:
             in_handle_version();
             break;
-        case '-':
+        case KEY_HYPHEN_MINUS:
             in_handle_repeating_label_entry();
             break;
         default:
@@ -147,7 +147,7 @@ static void in_handle_label_entry(uint8_t key)
     uint8_t rc;
     uint16_t cellref;
 
-    key = (key == '"') ? 0 : key;
+    key = (key == KEY_QUOTATION_MARK) ? 0 : key;
     final_string = in_handle_edit_line("Label", &key, &rc, &final_string_length);
     if (rc == UI_EDIT_LINE_DONE)
     {
@@ -192,22 +192,25 @@ void in_loop(void)
             case CH_CURS_LEFT:
                 ui_arrows(key);
                 break;
-            case '/':
+            case KEY_SOLIDUS:
                 in_handle_command();
                 break;
-            case '>':
+            case KEY_GREATER_THAN_SIGN:
                 in_handle_goto_coordinate();
                 break;
             default:
                 break;
         }
 
-        if (((key >= 'a') && (key <= 'z')) || ((key >= 'A') && (key <= 'Z')) || (key == '"'))
+        if (((key >= KEY_LATIN_SMALL_LETTER_A) && (key <= KEY_LATIN_SMALL_LETTER_Z)) ||
+            ((key >= KEY_LATIN_CAPITAL_LETTER_A) && (key <= KEY_LATIN_CAPITAL_LETTER_Z)) ||
+             (key == KEY_QUOTATION_MARK))
         {
             in_handle_label_entry(key);
         }
 
-        if ((key == '+') || ((key >= '0') && (key <= '9')))
+        if ((key == KEY_PLUS_SIGN) ||
+            ((key >= KEY_DIGIT_ZERO) && (key <= KEY_DIGIT_NINE)))
         {
             in_handle_value_entry(key);
         }
