@@ -13,7 +13,7 @@ uint8_t kb_getch(void)
         asm("jsr $FFE4");
         asm("sta %v", keycode);
 #else
-    asm("JSR $FFE4" : "=a"(keycode));
+    asm volatile ("JSR $FFE4" : "=a"(keycode)::"a","c","v","x","y");
 #endif /* __CC65__ */
 
         if (keycode) {
