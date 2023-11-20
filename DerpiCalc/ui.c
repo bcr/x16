@@ -128,7 +128,7 @@ static void ui_draw_cell_contents(uint8_t col, uint8_t row)
     }
 }
 
-static void ui_draw_row_headers()
+static void ui_draw_row_headers(void)
 {
     uint8_t j;
     uint8_t start_cell_row = ul_cell_row;
@@ -143,7 +143,7 @@ static void ui_draw_row_headers()
     }
 }
 
-static void ui_draw_column_headers()
+static void ui_draw_column_headers(void)
 {
     uint8_t column = 3 + (COLUMN_WIDTH / 2);
     uint8_t i;
@@ -152,7 +152,7 @@ static void ui_draw_column_headers()
 
     for (i = 0;i < NUMBER_CELL_COLUMNS;++i)
     {
-        s_set_position(3 + i * COLUMN_WIDTH + COLUMN_WIDTH / 2, 3, LAYER_UI);
+        s_set_position(column, 3, LAYER_UI);
         s_put_symbol(current_cell_column < 26 ? SYMBOL_SPACE : (current_cell_column / 26 - 1) + SYMBOL_LATIN_CAPITAL_LETTER_A, INVERSE_COLOR);
         s_put_symbol(current_cell_column % 26 + SYMBOL_LATIN_CAPITAL_LETTER_A, INVERSE_COLOR);
         column += COLUMN_WIDTH;
