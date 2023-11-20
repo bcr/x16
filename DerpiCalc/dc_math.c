@@ -1,7 +1,3 @@
-#include <stddef.h>
-#include <stdio.h>
-#include <string.h>
-
 #include "dc_math.h"
 
 static volatile const char* const fout_output = ((char*) 0x0100);
