@@ -1,6 +1,8 @@
 #ifndef EXPR_H
 #define EXPR_H
 
+#include "dc_math.h"
+
 #define EVALUATE_OK 0
 #define EVALUATE_UNKNOWN_OPERATOR 1
 #define EVALUATE_UNBALANCED_PARENS 2
