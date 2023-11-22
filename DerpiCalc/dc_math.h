@@ -3,18 +3,18 @@
 
 #include <stdint.h>
 
-#define BASIC_FLOAT_LENGTH 5
-
 #define NUMBER_TYPE_UNINITIALIZED 0
 #define NUMBER_TYPE_NORMAL 1
 #define NUMBER_TYPE_NA 2
 #define NUMBER_TYPE_ERROR 3
 
-struct number_t
-{
-    uint8_t type;
-    uint8_t number[BASIC_FLOAT_LENGTH];
-};
+#if DC_MATH_CX16
+#include "dc_math_cx16.h"
+#elif DC_MATH_DOUBLE
+#include "dc_math_double.h"
+#else
+#error No math specified. Let's go shopping.
+#endif /* DC_MATH_DOUBLE */
 
 void m_int_to_number(int16_t i, struct number_t *result);
 void m_symbols_to_number(const uint8_t* s, uint8_t len, struct number_t* result, uint8_t* consumed);

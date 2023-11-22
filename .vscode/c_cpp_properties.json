@@ -9,7 +9,8 @@
             "defines": [
                 "__CBM__",
                 "__CX16__",
-                "__CC65__"
+                "__CC65__",
+                "DC_MATH_CX16"
             ]
         },
         {
@@ -24,7 +25,8 @@
             "compilerPath": "~/llvm-mos/bin/mos-cx16-clang",
             "defines": [
                 "__CBM__",
-                "__CX16__"
+                "__CX16__",
+                "DC_MATH_DOUBLE"
             ]
         }
     ],
