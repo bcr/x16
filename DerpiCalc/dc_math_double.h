@@ -1,5 +1,5 @@
-#ifndef DC_MATH_INTERNAL_H
-#define DC_MATH_INTERNAL_H
+#ifndef DC_MATH_DOUBLE_H
+#define DC_MATH_DOUBLE_H
 
 #include <stdint.h>
 
@@ -9,4 +9,4 @@ struct number_t
     double number;
 };
 
-#endif /* DC_MATH_INTERNAL_H */
+#endif /* DC_MATH_DOUBLE_H */
