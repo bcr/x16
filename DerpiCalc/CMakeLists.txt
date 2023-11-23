@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.18)
 set(LLVM_MOS_PLATFORM cx16)
 find_package(llvm-mos-sdk REQUIRED)
 
-option(USE_SOFT_FLOAT "Use the bsoftfloat library" ON)
+option(USE_SOFT_FLOAT "Use the bsoftfloat library" OFF)
 
 project(derpicalc)
 set(derpicalc_sources dc.c cell.c expr.c expr_at.c input.c
