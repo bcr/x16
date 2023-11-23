@@ -1,9 +1,27 @@
 # cmake -DCMAKE_PREFIX_PATH=~/llvm-mos .. from the build directory
 cmake_minimum_required(VERSION 3.18)
-set(LLVM_MOS_PLATFORM cx16)
-find_package(llvm-mos-sdk REQUIRED)
 
+option(USE_CC65 "Use the CC65 compiler" ON)
 option(USE_SOFT_FLOAT "Use the bsoftfloat library" OFF)
+set(MOS_PLATFORM cx16)
+
+if(USE_CC65)
+    set(USE_LLVM_MOS OFF)
+else()
+    set(USE_LLVM_MOS ON)
+endif(USE_CC65)
+
+if ((NOT USE_LLVM_MOS) AND USE_SOFT_FLOAT)
+    message(FATAL_ERROR "bsoftfloat can only be used with llvm-mos")
+endif()
+
+if (USE_CC65)
+    set(CMAKE_TOOLCHAIN_FILE toolchain/cc65-toolchain.cmake)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -t ${MOS_PLATFORM}")
+elseif(USE_LLVM_MOS)
+    set(LLVM_MOS_PLATFORM ${MOS_PLATFORM})
+    find_package(llvm-mos-sdk REQUIRED)
+endif(USE_CC65)
 
 project(derpicalc)
 set(derpicalc_sources dc.c cell.c expr.c expr_at.c input.c
