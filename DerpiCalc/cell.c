@@ -4,63 +4,16 @@
 
 #include "cell.h"
 #include "cell_fmt.h"
+#include "cell_mem.h"
 #include "dc_math.h"
 #include "expr.h"
 #include "util.h"
-
-#define COLUMNS_PER_BLOCK 8
-#define ROWS_PER_BLOCK 64
-
-#define NUMBER_HORIZONTAL_BLOCKS ((MAX_CELL_COLUMN + (COLUMNS_PER_BLOCK - 1)) / COLUMNS_PER_BLOCK)
-#define NUMBER_VERTICAL_BLOCKS ((MAX_CELL_ROW + (ROWS_PER_BLOCK - 1)) / ROWS_PER_BLOCK)
-
-struct cell_t
-{
-    uint8_t type;
-    uint8_t format;
-    uint8_t col;
-    uint8_t row;
-    uint8_t contents_len;
-    uint8_t* contents;
-    uint8_t value_len;
-    uint8_t* value;
-    struct number_t number;
-    struct cell_t* next;
-};
-
-static struct cell_t *cell_map [NUMBER_HORIZONTAL_BLOCKS][NUMBER_VERTICAL_BLOCKS];
 
 static uint8_t cell_value[] = "         ";
 
 void c_init(void)
 {
-    uint8_t x, y;
-
-    for (x = 0;x<NUMBER_HORIZONTAL_BLOCKS;x++)
-        for (y = 0;y<NUMBER_VERTICAL_BLOCKS;y++)
-            cell_map[x][y] = NULL;
-}
-
-static struct cell_t* find_cell(uint8_t col, uint8_t row, uint8_t allocate_if_not_found)
-{
-    struct cell_t** current = &(cell_map[col / COLUMNS_PER_BLOCK][row / ROWS_PER_BLOCK]);
-
-    while (*current)
-    {
-        if (((*current)->col == col) && ((*current)->row == row))
-            break;
-        current = &((*current)->next);
-    }
-
-    if ((*current == NULL) && (allocate_if_not_found))
-    {
-        struct cell_t* new_cell = calloc(1, sizeof(struct cell_t));
-        *current = new_cell;
-        new_cell->col = col;
-        new_cell->row = row;
-    }
-
-    return *current;
+    c_mem_init();
 }
 
 #ifdef SHOW_DUMMY_CELL_VALUES
@@ -107,7 +60,7 @@ const uint8_t* c_get_cell_value(uint8_t col, uint8_t row)
 {
     struct cell_t* cell;
 
-    cell = find_cell(col, row, 0);
+    cell = c_mem_find_cell(col, row, 0);
     return (cell) ? cell->value : cell_value;
 }
 #endif /* SHOW_DUMMY_CELL_VALUES */
@@ -218,7 +171,7 @@ void c_set_cell_label(uint8_t col, uint8_t row, const uint8_t* label, uint8_t le
 {
     struct cell_t* cell;
 
-    cell = find_cell(col, row, 1);
+    cell = c_mem_find_cell(col, row, 1);
     cell->type = CELL_TYPE_LABEL;
     cell->number.type = NUMBER_TYPE_UNINITIALIZED;
     cell_set_contents(cell, label, len);
@@ -239,7 +192,7 @@ void c_set_cell_value(uint8_t col, uint8_t row, const uint8_t* value, uint8_t le
 {
     struct cell_t* cell;
 
-    cell = find_cell(col, row, 1);
+    cell = c_mem_find_cell(col, row, 1);
     cell->type = CELL_TYPE_VALUE;
     cell_set_contents(cell, value, len);
     cell_update_number(cell);
@@ -250,7 +203,7 @@ void c_set_cell_repeating_label(uint8_t col, uint8_t row, const uint8_t* label, 
 {
     struct cell_t* cell;
 
-    cell = find_cell(col, row, 1);
+    cell = c_mem_find_cell(col, row, 1);
     cell->type = CELL_TYPE_REPEATING;
     cell->number.type = NUMBER_TYPE_UNINITIALIZED;
     cell_set_contents(cell, label, len);
@@ -260,7 +213,7 @@ void c_set_cell_repeating_label(uint8_t col, uint8_t row, const uint8_t* label, 
 void c_blank_cell(uint8_t col, uint8_t row)
 {
     struct cell_t* cell;
-    cell = find_cell(col, row, 0);
+    cell = c_mem_find_cell(col, row, 0);
     if (cell != NULL)
     {
         cell->type = CELL_TYPE_BLANK;
@@ -273,7 +226,7 @@ void c_blank_cell(uint8_t col, uint8_t row)
 uint8_t c_get_cell_number(uint8_t col, uint8_t row, struct number_t* result)
 {
     struct cell_t* cell;
-    cell = find_cell(col, row, 0);
+    cell = c_mem_find_cell(col, row, 0);
     if ((cell != NULL) && (cell->number.type != NUMBER_TYPE_UNINITIALIZED))
     {
         memcpy(result, &cell->number, sizeof(struct number_t));
@@ -286,14 +239,14 @@ uint8_t c_get_cell_number(uint8_t col, uint8_t row, struct number_t* result)
 uint8_t c_get_cell_type(uint8_t col, uint8_t row)
 {
     struct cell_t* cell;
-    cell = find_cell(col, row, 0);
+    cell = c_mem_find_cell(col, row, 0);
     return (cell != NULL) ? cell->type : CELL_TYPE_BLANK;
 }
 
 const uint8_t* c_get_cell_contents(uint8_t col, uint8_t row, uint8_t* contents_len)
 {
     struct cell_t* cell;
-    cell = find_cell(col, row, 0);
+    cell = c_mem_find_cell(col, row, 0);
     if (cell != NULL)
     {
         *contents_len = cell->contents_len;
@@ -307,13 +260,13 @@ void c_set_cell_format(uint8_t col, uint8_t row, uint8_t format)
 {
     struct cell_t* cell;
 
-    cell = find_cell(col, row, 1);
+    cell = c_mem_find_cell(col, row, 1);
     cell->format = format;
     cell_update_value(cell);
 }
 
 uint8_t c_get_cell_format(uint8_t col, uint8_t row)
 {
-    struct cell_t* cell = find_cell(col, row, 0);
+    struct cell_t* cell = c_mem_find_cell(col, row, 0);
     return (cell != NULL) ? cell->format : CELL_FORMAT_DEFAULT;
 }
