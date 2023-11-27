@@ -1,7 +1,7 @@
 # cmake -DCMAKE_PREFIX_PATH=~/llvm-mos .. from the build directory
 cmake_minimum_required(VERSION 3.18)
 
-option(USE_CC65 "Use the CC65 compiler" ON)
+option(USE_CC65 "Use the CC65 compiler" OFF)
 option(USE_SOFT_FLOAT "Use the bsoftfloat library" OFF)
 set(MOS_PLATFORM cx16)
 
