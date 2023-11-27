@@ -24,6 +24,13 @@ elseif(USE_LLVM_MOS)
 endif(USE_CC65)
 
 project(derpicalc)
+    execute_process(
+        COMMAND git rev-parse HEAD
+        OUTPUT_VARIABLE git_revision
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    add_definitions(-DGIT_REVISION="${git_revision}")
+
 set(derpicalc_sources dc.c cell.c cell_fmt.c expr.c expr_at.c input.c
     keyboard.c screen.c ui.c ui_edit.c util.c)
 if(USE_SOFT_FLOAT)
