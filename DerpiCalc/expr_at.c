@@ -522,7 +522,6 @@ static uint8_t handle_lookup(const uint8_t* buffer, uint8_t len, struct number_t
 static uint8_t handle_npv(const uint8_t* buffer, uint8_t len, struct number_t* result)
 {
     uint8_t rc = EVALUATE_OK;
-    uint8_t first = 1;
     struct comma_iter c_iter;
     struct range_iter r_iter;
     struct number_t cash_flow;
@@ -537,9 +536,8 @@ static uint8_t handle_npv(const uint8_t* buffer, uint8_t len, struct number_t* r
     if (rc != EVALUATE_OK)
         return rc;
 
-    m_int_to_number(1, result);
-    m_add(&discount, result, &discount);
-    memcpy(&current_discount, &discount, sizeof(struct number_t));
+    m_int_to_number(1, &current_discount);
+    m_add(&discount, &current_discount, &discount);
     m_int_to_number(0, result);
 
     if (c_iter.last)
@@ -554,10 +552,7 @@ static uint8_t handle_npv(const uint8_t* buffer, uint8_t len, struct number_t* r
     {
         range_next(&r_iter);
 
-        if (!first)
-            m_multiply(&current_discount, &discount, &current_discount);
-        else
-            first = 0;
+        m_multiply(&current_discount, &discount, &current_discount);
 
         rc = c_get_cell_number(r_iter.current_col, r_iter.current_row, &cash_flow);
         if (rc != EVALUATE_OK)
