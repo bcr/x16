@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "cell.h"
+#include "cell_fmt.h"
 #include "dc_math.h"
 #include "expr.h"
 #include "util.h"
@@ -16,6 +17,7 @@
 struct cell_t
 {
     uint8_t type;
+    uint8_t format;
     uint8_t col;
     uint8_t row;
     uint8_t contents_len;
@@ -115,6 +117,7 @@ static void cell_update_value(struct cell_t* cell)
     uint8_t i;
     uint8_t bytes_to_copy;
     uint8_t bytes_to_alloc = COLUMN_WIDTH;
+    uint8_t padding;
     const volatile char* cstr_number;
 
     if (cell->value)
@@ -154,15 +157,42 @@ static void cell_update_value(struct cell_t* cell)
         }
         for (;i < cell->value_len;++i)
             cell->value[i] = SYMBOL_SPACE;
+
+        switch (cell->format)
+        {
+            case CELL_FORMAT_DOLLARS:
+                if (cell->number.type == NUMBER_TYPE_NORMAL)
+                    c_format_value(cell->value, cell->value_len, CELL_FORMAT_DOLLARS);
+                c_format_value(cell->value, cell->value_len, CELL_FORMAT_RIGHT);
+                break;
+            case CELL_FORMAT_RIGHT:
+            case CELL_FORMAT_DEFAULT:
+            case CELL_FORMAT_GRAPH:
+                // !!! TODO implement graph
+                c_format_value(cell->value, cell->value_len, CELL_FORMAT_RIGHT);
+                break;
+            case CELL_FORMAT_LEFT:
+                break;
+        }
     }
     else
     {
-        bytes_to_copy = (cell->value_len < cell->contents_len) ? cell->value_len : cell->contents_len;
-        memcpy(cell->value, cell->contents, bytes_to_copy);
-
-        if (bytes_to_copy < bytes_to_alloc)
-            for (i = bytes_to_copy;i < bytes_to_alloc;i++)
+        if ((cell->format == CELL_FORMAT_RIGHT) && (cell->contents_len < cell->value_len))
+        {
+            padding = (cell->value_len - cell->contents_len);
+            for (i = 0;i < padding;++i)
                 cell->value[i] = SYMBOL_SPACE;
+            memcpy(cell->value + i, cell->contents, cell->contents_len);
+        }
+        else
+        {
+            bytes_to_copy = (cell->value_len < cell->contents_len) ? cell->value_len : cell->contents_len;
+            memcpy(cell->value, cell->contents, bytes_to_copy);
+
+            if (bytes_to_copy < bytes_to_alloc)
+                for (i = bytes_to_copy;i < bytes_to_alloc;i++)
+                    cell->value[i] = SYMBOL_SPACE;
+        }
     }
 }
 
@@ -271,4 +301,19 @@ const uint8_t* c_get_cell_contents(uint8_t col, uint8_t row, uint8_t* contents_l
     }
     *contents_len = 0;
     return NULL;
+}
+
+void c_set_cell_format(uint8_t col, uint8_t row, uint8_t format)
+{
+    struct cell_t* cell;
+
+    cell = find_cell(col, row, 1);
+    cell->format = format;
+    cell_update_value(cell);
+}
+
+uint8_t c_get_cell_format(uint8_t col, uint8_t row)
+{
+    struct cell_t* cell = find_cell(col, row, 0);
+    return (cell != NULL) ? cell->format : CELL_FORMAT_DEFAULT;
 }

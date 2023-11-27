@@ -24,7 +24,7 @@ elseif(USE_LLVM_MOS)
 endif(USE_CC65)
 
 project(derpicalc)
-set(derpicalc_sources dc.c cell.c expr.c expr_at.c input.c
+set(derpicalc_sources dc.c cell.c cell_fmt.c expr.c expr_at.c input.c
     keyboard.c screen.c ui.c ui_edit.c util.c)
 if(USE_SOFT_FLOAT)
     list(APPEND derpicalc_sources dc_math_double.c)

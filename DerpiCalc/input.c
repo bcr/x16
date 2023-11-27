@@ -80,11 +80,49 @@ static void in_handle_version(void)
 static void in_handle_format(void)
 {
     uint8_t key;
+    uint16_t cellref;
+    uint8_t format;
+    uint8_t do_format = 0;
+
     ui_draw_prompt_line("Format: D G I L R $ *");
     key = kb_getch();
     ui_draw_prompt_line("");
+    cellref = ui_get_active_cell();
 
-    // !!! TODO
+    switch (key)
+    {
+        case KEY_DOLLAR_SIGN:
+            do_format = 1;
+            format = CELL_FORMAT_DOLLARS;
+            break;
+        case KEY_ASTERISK:
+            do_format = 1;
+            format = CELL_FORMAT_GRAPH;
+            break;
+        case KEY_LATIN_CAPITAL_LETTER_D:
+        case KEY_LATIN_SMALL_LETTER_D:
+            do_format = 1;
+            format = CELL_FORMAT_DEFAULT;
+            break;
+        case KEY_LATIN_CAPITAL_LETTER_L:
+        case KEY_LATIN_SMALL_LETTER_L:
+            do_format = 1;
+            format = CELL_FORMAT_LEFT;
+            break;
+        case KEY_LATIN_CAPITAL_LETTER_R:
+        case KEY_LATIN_SMALL_LETTER_R:
+            do_format = 1;
+            format = CELL_FORMAT_RIGHT;
+            break;
+        default:
+            // !!! TODO
+            break;
+    }
+    if (do_format)
+    {
+        c_set_cell_format(CELLREF_GET_COL(cellref), CELLREF_GET_ROW(cellref), format);
+        ui_refresh_active_cell();
+    }
 }
 
 static void in_handle_goto_coordinate(void)

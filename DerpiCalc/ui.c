@@ -64,6 +64,7 @@ static void put_symbols(const uint8_t* symbols, uint8_t len, uint8_t color)
 static void ui_draw_cell_contents(uint8_t col, uint8_t row)
 {
     uint8_t cell_type;
+    uint8_t cell_format;
     uint8_t symbols_output = 0;
     const uint8_t* contents;
     uint8_t contents_len;
@@ -91,6 +92,30 @@ static void ui_draw_cell_contents(uint8_t col, uint8_t row)
     s_put_symbol((row % 10) + SYMBOL_DIGIT_ZERO, INVERSE_COLOR);
     symbols_output += 1;
     row--;
+
+    cell_format = c_get_cell_format(col, row);
+    switch (cell_format)
+    {
+        case CELL_FORMAT_LEFT:
+            ui_draw_asciiz(" /FL", INVERSE_COLOR);
+            symbols_output += 4;
+            break;
+        case CELL_FORMAT_RIGHT:
+            ui_draw_asciiz(" /FR", INVERSE_COLOR);
+            symbols_output += 4;
+            break;
+        case CELL_FORMAT_DOLLARS:
+            ui_draw_asciiz(" /F$", INVERSE_COLOR);
+            symbols_output += 4;
+            break;
+        case CELL_FORMAT_GRAPH:
+            ui_draw_asciiz(" /F*", INVERSE_COLOR);
+            symbols_output += 4;
+            break;
+        case CELL_FORMAT_DEFAULT:
+        default:
+            break;
+    }
 
     s_put_symbol(SYMBOL_SPACE, INVERSE_COLOR);
     symbols_output += 1;
