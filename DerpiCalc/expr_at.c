@@ -519,6 +519,57 @@ static uint8_t handle_lookup(const uint8_t* buffer, uint8_t len, struct number_t
     return rc;
 }
 
+static uint8_t handle_npv(const uint8_t* buffer, uint8_t len, struct number_t* result)
+{
+    uint8_t rc = EVALUATE_OK;
+    uint8_t first = 1;
+    struct comma_iter c_iter;
+    struct range_iter r_iter;
+    struct number_t cash_flow;
+    struct number_t discount;
+    struct number_t current_discount;
+    struct number_t this_npv;
+
+    comma_start(&c_iter, buffer, len);
+
+    comma_next(&c_iter);
+    rc = e_evaluate(c_iter.buffer + c_iter.pos, c_iter.len, &discount);
+    if (rc != EVALUATE_OK)
+        return rc;
+
+    m_int_to_number(1, result);
+    m_add(&discount, result, &discount);
+    memcpy(&current_discount, &discount, sizeof(struct number_t));
+    m_int_to_number(0, result);
+
+    if (c_iter.last)
+        return EVALUATE_BAD_RANGE;
+
+    comma_next(&c_iter);
+    rc = maybe_parse_range(c_iter.buffer + c_iter.pos, c_iter.len, &r_iter);
+    if (rc != EVALUATE_OK)
+        return rc;
+
+    do
+    {
+        range_next(&r_iter);
+
+        if (!first)
+            m_multiply(&current_discount, &discount, &current_discount);
+        else
+            first = 0;
+
+        rc = c_get_cell_number(r_iter.current_col, r_iter.current_row, &cash_flow);
+        if (rc != EVALUATE_OK)
+            return rc;
+
+        m_divide(&cash_flow, &current_discount, &this_npv);
+        m_add(result, &this_npv, result);
+    } while (!r_iter.last);
+
+    return rc;
+}
+
 struct at_func
 {
     const char* name;
@@ -552,6 +603,7 @@ static const struct at_func nonzero_len_at_funcs[] = {
     { "ACOS", handle_acos },
     { "COUNT", handle_count },
     { "LOOKUP", handle_lookup },
+    { "NPV", handle_npv },
 
     { NULL, NULL }
     };
