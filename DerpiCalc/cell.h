@@ -5,10 +5,10 @@
 
 #include "dc_math.h"
 
-#define CELL_TYPE_LABEL 0
-#define CELL_TYPE_VALUE 1
-#define CELL_TYPE_REPEATING 2
-#define CELL_TYPE_BLANK 3
+#define CELL_TYPE_BLANK 0
+#define CELL_TYPE_LABEL 1
+#define CELL_TYPE_VALUE 2
+#define CELL_TYPE_REPEATING 3
 
 #define CELL_FORMAT_DEFAULT 0
 #define CELL_FORMAT_DOLLARS 1
@@ -27,5 +27,6 @@ uint8_t c_get_cell_type(uint8_t col, uint8_t row);
 const uint8_t* c_get_cell_contents(uint8_t col, uint8_t row, uint8_t* contents_len);
 void c_set_cell_format(uint8_t col, uint8_t row, uint8_t format);
 uint8_t c_get_cell_format(uint8_t col, uint8_t row);
+void c_recalculate(void);
 
 #endif /* CELL_H */

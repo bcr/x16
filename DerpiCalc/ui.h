@@ -17,5 +17,6 @@ void ui_edit_line_start(void);
 uint8_t ui_edit_line_key(uint8_t key);
 const uint8_t* ui_edit_line_done(uint8_t* len);
 void ui_set_active_cell(uint8_t new_active_cell_column, uint8_t new_active_cell_row);
+void ui_redraw_cells(void);
 
 #endif /* UI_H */

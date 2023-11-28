@@ -215,6 +215,12 @@ static void in_handle_value_entry(uint8_t key)
     }
 }
 
+static void in_handle_recalculate(void)
+{
+    c_recalculate();
+    ui_redraw_cells();
+}
+
 void in_loop(void)
 {
     uint8_t key;
@@ -235,6 +241,9 @@ void in_loop(void)
                 break;
             case KEY_GREATER_THAN_SIGN:
                 in_handle_goto_coordinate();
+                break;
+            case KEY_EXCLAMATION_MARK:
+                in_handle_recalculate();
                 break;
             default:
                 break;

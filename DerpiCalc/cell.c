@@ -270,3 +270,17 @@ uint8_t c_get_cell_format(uint8_t col, uint8_t row)
     struct cell_t* cell = c_mem_find_cell(col, row, 0);
     return (cell != NULL) ? cell->format : CELL_FORMAT_DEFAULT;
 }
+
+static void recalculate_cell(struct cell_t* cell)
+{
+    if (cell->type == CELL_TYPE_VALUE)
+    {
+        cell_update_number(cell);
+        cell_update_value(cell);
+    }
+}
+
+void c_recalculate(void)
+{
+    c_mem_iterate_cells(recalculate_cell);
+}
