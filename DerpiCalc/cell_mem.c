@@ -1,44 +1,78 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "util.h"
 #include "cell.h"
 #include "cell_mem.h"
 
-#define COLUMNS_PER_BLOCK 8
-#define ROWS_PER_BLOCK 64
-
-#define NUMBER_HORIZONTAL_BLOCKS ((MAX_CELL_COLUMN + (COLUMNS_PER_BLOCK - 1)) / COLUMNS_PER_BLOCK)
-#define NUMBER_VERTICAL_BLOCKS ((MAX_CELL_ROW + (ROWS_PER_BLOCK - 1)) / ROWS_PER_BLOCK)
-
-static struct cell_t *cell_map [NUMBER_HORIZONTAL_BLOCKS][NUMBER_VERTICAL_BLOCKS];
+static struct cell_t *cell_root;
 
 void c_mem_init(void)
 {
-    uint8_t x, y;
-
-    for (x = 0;x<NUMBER_HORIZONTAL_BLOCKS;x++)
-        for (y = 0;y<NUMBER_VERTICAL_BLOCKS;y++)
-            cell_map[x][y] = NULL;
+    cell_root = NULL;
 }
 
 struct cell_t* c_mem_find_cell(uint8_t col, uint8_t row, uint8_t allocate_if_not_found)
 {
-    struct cell_t** current = &(cell_map[col / COLUMNS_PER_BLOCK][row / ROWS_PER_BLOCK]);
+    struct cell_t** current = &cell_root;
+    struct cell_t* last_cell = NULL;
 
     while (*current)
     {
-        if (((*current)->col == col) && ((*current)->row == row))
+        if ((*current)->col >= col)
             break;
-        current = &((*current)->next);
+        current = &((*current)->right);
     }
 
-    if ((*current == NULL) && (allocate_if_not_found))
+    if ((*current) && ((*current)->col == col))
+    {
+        while ((*current) && ((*current)->row > row))
+        {
+            last_cell = *current;
+            current = &((*current)->up);
+        }
+
+        while ((*current) && ((*current)->row < row))
+        {
+            last_cell = *current;
+            current = &((*current)->down);
+        }
+
+        if ((*current) && ((*current)->row == row))
+        {
+            return *current;
+        }
+    }
+
+    if (allocate_if_not_found)
     {
         struct cell_t* new_cell = calloc(1, sizeof(struct cell_t));
+        if (*current)
+        {
+            if ((*current)->col > col)
+            {
+                new_cell->right = *current;
+            }
+            else
+            {
+                if ((*current)->row < row)
+                {
+                    new_cell->up = *current;
+                    new_cell->down = last_cell;
+                }
+                else
+                {
+                    new_cell->down = *current;
+                    new_cell->up = last_cell;
+                }
+            }
+        }
         *current = new_cell;
         new_cell->col = col;
         new_cell->row = row;
     }
+    else
+        return NULL;
 
     return *current;
 }

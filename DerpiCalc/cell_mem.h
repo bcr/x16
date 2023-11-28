@@ -12,7 +12,9 @@ struct cell_t
     uint8_t value_len;
     uint8_t* value;
     struct number_t number;
-    struct cell_t* next;
+    struct cell_t* right;
+    struct cell_t* down;
+    struct cell_t* up;
 };
 
 void c_mem_init(void);
