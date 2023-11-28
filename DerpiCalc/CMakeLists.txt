@@ -31,8 +31,8 @@ project(derpicalc)
     )
     add_definitions(-DGIT_REVISION="${git_revision}")
 
-set(derpicalc_sources dc.c cell.c cell_fmt.c cell_mem.c expr.c expr_at.c input.c
-    keyboard.c screen.c ui.c ui_edit.c util.c)
+set(derpicalc_sources dc.c cell.c cell_fmt.c cell_mem.c expr.c expr_at.c
+    expr_iter input.c keyboard.c screen.c ui.c ui_edit.c util.c)
 if(USE_SOFT_FLOAT)
     list(APPEND derpicalc_sources dc_math_double.c)
     add_compile_definitions(DC_MATH_DOUBLE)
