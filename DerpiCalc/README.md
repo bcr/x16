@@ -34,14 +34,12 @@ needs to be able to find the cc65 compiler.)
 
 ## Stuff to do
 
-- [ ] Recalculation of other cells when a cell changes
-- [ ] @NPV
 - [ ] Error handling prints BASIC complaint and halts
 - [ ] Scientific notation for constants
 - [ ] Explicitly positive / negative constants
 - [ ] Scrutinize NA and ERROR
 - [ ] Blank cell handling (@AVERAGE and @COUNT specifically)
-- [ ] libm soft float implementation?
+- [ ] More soft float work
 
 ## Observations on compilers
 
