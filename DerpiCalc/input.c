@@ -8,6 +8,8 @@
 #include "ui.h"
 #include "util.h"
 
+static uint8_t automatic_recalculation = 1;
+
 static const uint8_t* in_handle_edit_line(const char* prompt, uint8_t* key, uint8_t* rc, uint8_t* len)
 {
     const uint8_t* final_string;
@@ -125,6 +127,48 @@ static void in_handle_format(void)
     }
 }
 
+static void in_handle_recalculate(void)
+{
+    c_recalculate();
+    ui_redraw_cells();
+}
+
+static void in_handle_global(void)
+{
+    uint8_t key;
+
+    ui_draw_prompt_line("Global: C O R F");
+    key = kb_getch();
+    ui_draw_prompt_line("");
+
+    switch (key)
+    {
+        case KEY_LATIN_CAPITAL_LETTER_R:
+        case KEY_LATIN_SMALL_LETTER_R:
+            ui_draw_prompt_line("Recalc: A M");
+            key = kb_getch();
+            ui_draw_prompt_line("");
+
+            switch (key)
+            {
+                case KEY_LATIN_CAPITAL_LETTER_A:
+                case KEY_LATIN_SMALL_LETTER_A:
+                    automatic_recalculation = 1;
+                    in_handle_recalculate();
+                    break;
+                case KEY_LATIN_CAPITAL_LETTER_M:
+                case KEY_LATIN_SMALL_LETTER_M:
+                    automatic_recalculation = 0;
+                    break;
+            }
+
+            break;
+        default:
+            // !!! TODO
+            break;
+    }
+}
+
 static void in_handle_goto_coordinate(void)
 {
     const uint8_t* final_string;
@@ -163,6 +207,10 @@ static void in_handle_command(void)
         case KEY_LATIN_SMALL_LETTER_F:
         case KEY_LATIN_CAPITAL_LETTER_F:
             in_handle_format();
+            break;
+        case KEY_LATIN_SMALL_LETTER_G:
+        case KEY_LATIN_CAPITAL_LETTER_G:
+            in_handle_global();
             break;
         case KEY_LATIN_SMALL_LETTER_V:
         case KEY_LATIN_CAPITAL_LETTER_V:
@@ -209,16 +257,15 @@ static void in_handle_value_entry(uint8_t key)
     {
         cellref = ui_get_active_cell();
         c_set_cell_value(CELLREF_GET_COL(cellref), CELLREF_GET_ROW(cellref), final_string, final_string_length);
-        ui_refresh_active_cell();
+        if (automatic_recalculation)
+        {
+            in_handle_recalculate();
+        }
+        else
+            ui_refresh_active_cell();
         if (IS_ARROW_KEY(key))
             ui_arrows(key);
     }
-}
-
-static void in_handle_recalculate(void)
-{
-    c_recalculate();
-    ui_redraw_cells();
 }
 
 void in_loop(void)
