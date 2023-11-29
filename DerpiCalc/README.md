@@ -40,6 +40,7 @@ needs to be able to find the cc65 compiler.)
 - [ ] Scrutinize NA and ERROR
 - [ ] Blank cell handling (@AVERAGE and @COUNT specifically)
 - [ ] More soft float work
+- [ ] Handle ^ operator
 
 ## Observations on compilers
 
@@ -64,3 +65,31 @@ characters.
 * @INT(0-1.234) -- gives -2, VisiCalc gives -1 (truncation, not rounding)
 * @ACOS may be broken. As well as @ASIN
 * There are dragons past BK253. You have been warned.
+* Unknown operators cause much hang (gets fed to e_symbols_to_number)
+
+## VisiCalc quirks
+
+* `@INT(2^3)` is 7, not 8 for some reason
+* Defining a column of numbers in reverse requires lots of recalc. Like if you
+  put 1 in A4 and make A3 = A4 + 1 and A2 = A3 + 1 and A1 = A2 + 1 then change
+  A4 it needs multiple recalc to get A2 and A1 fixed.
+
+## Random notes
+
+There's a problem right now where the mapping of CIRCUMFLEX ACCENT symbol
+mapping needs to be sorted out.
+
+When it's time to implement the ^ operator, this is the function.
+
+```c
+void m_raise(const struct number_t* a, const struct number_t* b, struct number_t* result)
+{
+    setup_fac_arg(a, b);
+#if __CC65__
+    asm("JSR $FE39"); // FPWRT -- FAC = ARG ^ FAC
+#else
+    asm volatile("JSR $FE39":::"a","c","v","x","y"); // FPWRT -- FAC = ARG ^ FAC
+#endif /* __CC65__ */
+    get_fac(result);
+}
+```
