@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 
 #include <cbm.h>
 
@@ -9,6 +10,7 @@
 #include "util.h"
 
 static uint8_t automatic_recalculation = 1;
+static uint8_t recalculate_order = RECALCULATE_ORDER_COLUMNS;
 
 static const uint8_t* in_handle_edit_line(const char* prompt, uint8_t* key, uint8_t* rc, uint8_t* len)
 {
@@ -129,7 +131,7 @@ static void in_handle_format(void)
 
 static void in_handle_recalculate(void)
 {
-    c_recalculate();
+    c_recalculate(recalculate_order);
     ui_redraw_cells();
 }
 
@@ -143,6 +145,27 @@ static void in_handle_global(void)
 
     switch (key)
     {
+        case KEY_LATIN_CAPITAL_LETTER_O:
+        case KEY_LATIN_SMALL_LETTER_O:
+            ui_draw_prompt_line("Reeval Order: C R");
+            key = kb_getch();
+            ui_draw_prompt_line("");
+
+            switch (key)
+            {
+                case KEY_LATIN_CAPITAL_LETTER_C:
+                case KEY_LATIN_SMALL_LETTER_C:
+                    recalculate_order = RECALCULATE_ORDER_COLUMNS;
+                    in_handle_recalculate();
+                    break;
+                case KEY_LATIN_CAPITAL_LETTER_R:
+                case KEY_LATIN_SMALL_LETTER_R:
+                    recalculate_order = RECALCULATE_ORDER_ROWS;
+                    in_handle_recalculate();
+                    break;
+            }
+            printf("%d ", recalculate_order);
+            break;
         case KEY_LATIN_CAPITAL_LETTER_R:
         case KEY_LATIN_SMALL_LETTER_R:
             ui_draw_prompt_line("Recalc: A M");

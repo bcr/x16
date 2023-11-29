@@ -47,3 +47,15 @@ void c_mem_iterate_cells(cell_func func)
         for (current = cell_columns[i];current;current = current->next)
             func(current);
 }
+
+void c_mem_iterate_cells_by_row(cell_func func)
+{
+    uint8_t i, j;
+    struct cell_t* current;
+
+    for (j = 0;j <= MAX_CELL_ROW;++j)
+        for (i = 0;i <= MAX_CELL_COLUMN;++i)
+            for (current = cell_columns[i];((current) && (current->row <= j));current = current->next)
+                    if (current->row == j)
+                        func(current);
+}

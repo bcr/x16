@@ -27,6 +27,6 @@ uint8_t c_get_cell_type(uint8_t col, uint8_t row);
 const uint8_t* c_get_cell_contents(uint8_t col, uint8_t row, uint8_t* contents_len);
 void c_set_cell_format(uint8_t col, uint8_t row, uint8_t format);
 uint8_t c_get_cell_format(uint8_t col, uint8_t row);
-void c_recalculate(void);
+void c_recalculate(uint8_t recalculate_order);
 
 #endif /* CELL_H */

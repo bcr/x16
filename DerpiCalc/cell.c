@@ -280,7 +280,10 @@ static void recalculate_cell(struct cell_t* cell)
     }
 }
 
-void c_recalculate(void)
+void c_recalculate(uint8_t recalculate_order)
 {
-    c_mem_iterate_cells(recalculate_cell);
+    if (recalculate_order == RECALCULATE_ORDER_COLUMNS)
+        c_mem_iterate_cells(recalculate_cell);
+    else
+        c_mem_iterate_cells_by_row(recalculate_cell);
 }
