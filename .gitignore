@@ -2,5 +2,6 @@
 *.prg
 boxtext
 charmap
+tile_charmap
 doxygen/
 build/

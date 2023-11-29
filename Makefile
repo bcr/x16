@@ -1,3 +1,3 @@
 include x16cl65.mak
 
-all: charmap boxtext
+all: charmap boxtext tile_charmap
