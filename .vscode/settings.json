@@ -1,0 +1,4 @@
+{
+    "cmake.sourceDirectory": "${workspaceFolder}/DerpiCalc",
+    "cmake.configureSettings": { "CMAKE_PREFIX_PATH": "~/llvm-mos" }
+}
