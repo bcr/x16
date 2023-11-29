@@ -1,5 +1,4 @@
 #include <stdint.h>
-#include <stdio.h>
 
 #include <cbm.h>
 
@@ -164,7 +163,6 @@ static void in_handle_global(void)
                     in_handle_recalculate();
                     break;
             }
-            printf("%d ", recalculate_order);
             break;
         case KEY_LATIN_CAPITAL_LETTER_R:
         case KEY_LATIN_SMALL_LETTER_R:
