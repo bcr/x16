@@ -6,7 +6,7 @@
 struct number_t
 {
     uint8_t type;
-    double number;
+    float number;
 };
 
 #endif /* DC_MATH_DOUBLE_H */
