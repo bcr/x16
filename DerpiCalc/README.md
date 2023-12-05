@@ -93,3 +93,6 @@ void m_raise(const struct number_t* a, const struct number_t* b, struct number_t
     get_fac(result);
 }
 ```
+
+http://www.bitsavers.org/pdf/visicorp/apple2/10911-2212_VisiCalc_Apple_II_Jan82.pdf
+https://www.pcjs.org/software/pcx86/app/other/visicalc/1981/
