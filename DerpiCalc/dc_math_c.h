@@ -1,5 +1,5 @@
-#ifndef DC_MATH_DOUBLE_H
-#define DC_MATH_DOUBLE_H
+#ifndef DC_MATH_C_H
+#define DC_MATH_C_H
 
 #include <stdint.h>
 
@@ -9,4 +9,4 @@ struct number_t
     float number;
 };
 
-#endif /* DC_MATH_DOUBLE_H */
+#endif /* DC_MATH_C_H */

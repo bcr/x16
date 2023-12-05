@@ -10,11 +10,11 @@
 
 #if DC_MATH_CX16
 #include "dc_math_cx16.h"
-#elif DC_MATH_DOUBLE
-#include "dc_math_double.h"
+#elif DC_MATH_C
+#include "dc_math_c.h"
 #else
 #error No math specified. Let's go shopping.
-#endif /* DC_MATH_DOUBLE */
+#endif /* DC_MATH_C */
 
 void m_int_to_number(int16_t i, struct number_t *result);
 void m_symbols_to_number(const uint8_t* s, uint8_t len, struct number_t* result, uint8_t* consumed);

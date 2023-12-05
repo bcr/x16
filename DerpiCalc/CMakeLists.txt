@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.18)
 
 option(USE_CC65 "Use the CC65 compiler" OFF)
-option(USE_SOFT_FLOAT "Use native floats" ON)
+option(USE_C_FLOATS "Use C floats" ON)
 set(MOS_PLATFORM cx16)
 
 if(USE_CC65)
@@ -11,8 +11,8 @@ else()
     set(USE_LLVM_MOS ON)
 endif(USE_CC65)
 
-if ((NOT USE_LLVM_MOS) AND USE_SOFT_FLOAT)
-    message(FATAL_ERROR "native floats can only be used with llvm-mos")
+if ((NOT USE_LLVM_MOS) AND USE_C_FLOATS)
+    message(FATAL_ERROR "C floats can only be used with llvm-mos")
 endif()
 
 if (USE_CC65)
@@ -33,11 +33,11 @@ project(derpicalc)
 
 set(derpicalc_sources dc.c cell.c cell_fmt.c cell_mem.c expr.c expr_at.c
     expr_iter.c input.c keyboard.c screen.c ui.c ui_edit.c util.c)
-if(USE_SOFT_FLOAT)
-    list(APPEND derpicalc_sources dc_math_double.c)
-    add_compile_definitions(DC_MATH_DOUBLE)
+if(USE_C_FLOATS)
+    list(APPEND derpicalc_sources dc_math_c.c)
+    add_compile_definitions(DC_MATH_C)
 else()
     list(APPEND derpicalc_sources dc_math_cx16.c)
     add_compile_definitions(DC_MATH_CX16)
-endif(USE_SOFT_FLOAT)
+endif(USE_C_FLOATS)
 add_executable(dc.prg ${derpicalc_sources})
