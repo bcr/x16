@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.18)
 
 option(USE_CC65 "Use the CC65 compiler" OFF)
-option(USE_SOFT_FLOAT "Use the bsoftfloat library" OFF)
+option(USE_SOFT_FLOAT "Use native floats" ON)
 set(MOS_PLATFORM cx16)
 
 if(USE_CC65)
@@ -12,7 +12,7 @@ else()
 endif(USE_CC65)
 
 if ((NOT USE_LLVM_MOS) AND USE_SOFT_FLOAT)
-    message(FATAL_ERROR "bsoftfloat can only be used with llvm-mos")
+    message(FATAL_ERROR "native floats can only be used with llvm-mos")
 endif()
 
 if (USE_CC65)
@@ -41,6 +41,3 @@ else()
     add_compile_definitions(DC_MATH_CX16)
 endif(USE_SOFT_FLOAT)
 add_executable(dc.prg ${derpicalc_sources})
-if(USE_SOFT_FLOAT)
-    target_link_libraries(dc.prg bsoftfloat)
-endif(USE_SOFT_FLOAT)
